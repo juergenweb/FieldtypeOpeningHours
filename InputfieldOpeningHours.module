@@ -1,0 +1,323 @@
+<?php
+namespace ProcessWire;
+
+class InputfieldOpeningHours extends Inputfield
+{
+
+    public function __construct()
+    {
+        include_once(__DIR__ . '/OpeningHours.php');
+        //define configuration field properties to make them callable inside this class
+        $this->set('numberOftimes', 2);
+        $this->set('timeformat', '%R');
+        parent::__construct();
+    }
+
+
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => 'Inputfield Opening Hours',
+            'summary' => 'Renders an input field for entering opening hours',
+            'version' => 1,
+            'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
+            'icon' => 'clock-o',
+            'permanent' => false,
+            'requires' => [
+                'PHP>=7.0.0',
+                'ProcessWire>=3',
+                'FieldtypeOpeningHours'
+              ],
+            'author' => 'Jürgen Kern'
+        );
+    }
+
+
+    /**
+    * Init is called when the system is ready for API usage
+    */
+    public function init()
+    {
+        $info = $this->getModuleInfo();
+        $version = $info['version'];
+        //Add CSS and JS files
+        $this->config->styles->add(config()->urls->{$this->className} . 'openinghours.css?v='.$version);
+        $this->config->scripts->add(config()->urls->{$this->className} . 'openinghours.js?v='.$version);
+        return parent::init();
+    }
+
+    /**
+    * Method to render the inputfields in th backend
+    * @return string
+    */
+    public function ___render()
+    {
+        $name = $this->attr('name');
+        $data = $this->attr('value');
+        $times = $data->data['times'];
+
+        $output = '<table id="'.$name.'-table" class="AdminDataTable AdminDataList AdminDataTableResponsive openinghours-table">';
+        $output .= '<thead>';
+        $output .= '<tr>';
+        $output .= '<th>'.$this->_('Day of the week').'</th>';
+        $output .= '<th>'.$this->_('Status').'</th>';
+        $output .= '<th colspan="3">'.$this->_('Opening hours').'</th>';
+        $output .= '</tr>';
+        $output .= '</thead>';
+        $output .= '<tbody>';
+
+        $i = 0;
+        foreach ($times as $dayAbbr=>$daytimesArray) {
+
+            //set checkbox status depending on first value in times array
+            if ($daytimesArray[0]['start']) {
+                $checkboxStatus = ' checked';
+                $statusClass = 'open';
+            } else {
+                $checkboxStatus = '';
+                $statusClass = 'closed';
+            }
+            $output .= '<tr id="'.$name.'-row-'.$dayAbbr.'" class="day-row day-'.$dayAbbr.' '.$statusClass.'">';
+            // Output name of the weekday
+            $output .= '<td class="weekday"><span>'.OpeningHours::getDaysOfTheWeek()[$i][1].'</span></td>';
+            // Output checkbox switcher
+            $output .= '<td>';
+            $output .= '<label class="switch">';
+            $output .= '<input id="'.$name.'-toggle-'.$dayAbbr.'" class="togglestatus" type="checkbox"'.$checkboxStatus.'>';
+            $output .= '<span class="slider round"></span>';
+            $output .= '</label>';
+            $output .= '</td>';
+            // output times per day
+            $output .= '<td id="'.$name.'-hours-'.$dayAbbr.'">';
+            $output .= '<table id="'.$name.'-hours-'.$dayAbbr.'" class="openinghours">';
+            $output .= '<tbody>';
+            foreach ($daytimesArray as $num=>$daytimeArray) {
+                $output .= '<tr id="'.$name.'-'.$dayAbbr.'-'.$num.'">';
+                $output .= '<td><span class="number">'.(intval($num) + 1).'</span></td>';
+                foreach ($daytimeArray as $time=>$timeValue) {
+                    if ($time === 'start') {
+                        $label = $this->_('From');
+                        $class = ' from';
+                    } else {
+                        $label = $this->_('To');
+                        $class = ' to';
+                    }
+                    $output .= '<td><label class="openinghours-label'.$class.'">'.$label.':</label><input type="time" id="'.$name.'-'.$dayAbbr.'-'.$num.'-'.$time.'" class="input" name="'.$name.'-'.$dayAbbr.'-'.$num.'-'.$time.'" value="'.$timeValue.'"/></td>';
+                }
+                if ($num === 0) {
+                    $output .= '<td><button id="'.$name.'-add-'.$dayAbbr.'" class="add-btn ui-button" type="button" data-max="'.$this->numberOftimes.'">'.$this->_('Add').'</button></td>';
+                } else {
+                    $output .= '<td><button id="'.$name.'-remove-'.$dayAbbr.'-'.$num.'" class="remove-btn ui-button ui-priority-secondary" type="button">'.$this->_('Remove').'</button></td>';
+                }
+                $output .= '</tr>';
+            }
+            $output .= '</tbody>';
+            $output .= '</table>';
+            $output .= '</td>';
+            $output .= '</tr>';
+            $i++;
+        }
+        $output .= '</tbody>';
+        $output .= '<tfoot><tr><td colspan="3">'.sprintf($this->_n('Only 1 time per day is permitted.', 'A max number of %s times per day is permitted.', $this->numberOftimes), $this->numberOftimes).'</td></tr></tfoot>';
+        $output .= '</table>';
+
+        return $output;
+    }
+
+
+    /**
+    * Method for various sanitizations to clean user input after form submission
+    * removes completely empty times from the array (no start and no end time)
+    * removes incomplete times from the array (only start or end time)
+    * removes duplicate times from each day
+    * re-ordering multiple times on start time ascending
+    * re-index the array after all sanitization
+    * @return array
+    */
+    public function sanitizeValidateValues(array $times, string $fieldName): array
+    {
+      $sanitizedValues = [];
+      foreach(OpeningHours::getDaysOfTheWeek() as $key=>$value){
+        $value = [$value[0] => $value[1]];
+        foreach ($value as $dayAbbr=>$dayName) {
+          $timeValues = [];
+            foreach ($times as $key=>$timesArray) { //key = mo,tu,.. value = multidimes. array of times on this day
+              //check for max times/day and remove all times which are above the limit
+              $timesArray = array_slice($timesArray, 0, $this->numberOftimes);
+                foreach($timesArray as $pos=>$timePair){
+                  $numberOfValues = count(array_filter($timePair));
+                  // set all incomplete values (only start or end time was entered) to completely empty
+                  if($numberOfValues === 1) {
+                    //set both values to empty and add it back to the array
+                    $timePair = ['start' => '' , 'finish' => ''];
+                    $this->warning($this->_('Incomplete time with only a start or endtime was removed.'));
+                  }
+                  if((count($timePair) === 0)){
+                    $timePair = false;
+                  }
+                  if($dayAbbr == $key){
+                    if((count(array_filter($timePair)) === 2) || ($pos === 0)){
+                      if(count(array_filter($timePair)) === 2){
+                        if($timePair['start'] == $timePair['finish']){
+                          $this->error(sprintf($this->_('On %s start and end time is equal.Please set different times.'), $dayName.' (#'.($pos + 1).')'));
+                        }
+                        if($timePair['start'] > $timePair['finish']){
+                          $this->warning(sprintf($this->_('On %s start time is after end time. If end time is on the next day it would be ok.'), $dayName.' (#'.($pos + 1).')'));
+                        }
+                      }
+                      $timeValues[$dayAbbr][] = $timePair;
+                    }
+                  }
+                }
+            }
+            //remove the first empty array of multi times array (if present)
+            $numberOfTimes = count($timeValues[$dayAbbr]);
+            if($numberOfTimes > 1) {
+              if(count(array_filter($timeValues[$dayAbbr][0])) === 0){ //first item is empty - lets remove it
+                unset($timeValues[$dayAbbr][0]);
+              }
+              $unique = array_unique($timeValues[$dayAbbr], SORT_REGULAR);
+
+              $keys = array_column($unique, 'start');
+              array_multisort($keys, SORT_ASC, $unique);
+
+              $sanitizedValues[$dayAbbr] = $unique;
+            } else {
+              $sanitizedValues[$dayAbbr] = $timeValues[$dayAbbr];
+            }
+        }
+      }
+      return $sanitizedValues;
+    }
+
+
+    /**
+     * Pull the value from the given $input argument ($input->post or $input->get) as WireInputData object, sanitize/validate it, and populate it back to the value attribute of this Inputfield.
+     *
+     * @param WireInputData $input
+     * @return $this
+     *
+     */
+    public function ___processInput(WireInputData $input): self
+    {
+        $name = $this->attr('name');
+        $value = $this->attr('value');
+
+
+        //input object includes always input values from every field on the page, so lets filter out only the inputs from this field
+        //we need to do this, because the number of values is variable - so extract only values that starts with fieldname_.
+        $timeInputs = [];
+        foreach ($input as $key=>$value) {
+            if (substr($key, 0, strlen($name)) === $name) {
+                $timeInputs[$key] = $value;
+            }
+        }
+
+        // 1) Set inputs as a string and check if it is in a valid time format(H:i) - otherwise get rid of them
+        $cleanedValues = [];
+        foreach($timeInputs as $key=>$value){
+          $value = strval($value);
+          if($value){
+            //check if value has valid time format (fe 08:00)
+            if(OpeningHours::isTimeValid($value)){
+              $cleanedValues[$key] = $value;
+            } else {
+              $cleanedValues[$key] = '';
+              $this->error($this->_('A value was not a valid time string so it was deleted.'));
+            }
+          } else {
+            //empty value
+            $cleanedValues[$key] = '';
+          }
+        }
+
+
+
+        // 2) create multidimensional array from onedimensional POST array -> needed for sanitization and validation on per days base afterwards
+        $times = OpeningHours::createMultidimArray($cleanedValues);
+
+        // 3) sanitize all values
+        $sanitizedValues = $this->sanitizeValidateValues($times, $name);
+
+        // 4) set validate values back
+        $validationValues = [];
+        //validate if endtime is after starttime
+        foreach (OpeningHours::getDaysOfTheWeek() as $key=>$day) {
+            //foreach($times as $key=>$value){
+           foreach ($sanitizedValues as $key=>$value) { //key = mo,tu,..
+             if ($key === $day[0]) {
+                 foreach ($value as $keyNumber => $timesArray) {
+                     $validationValues[$day[0]][$keyNumber] = $timesArray;
+                 }
+             }
+           }
+        }
+
+        // 4) transform the multidim. array back to an one-dim. array like we got from POST
+        $flattenArray = OpeningHours::flattenArray($validationValues, $name);
+
+        //add it to the object to make it reachable in fieldtype as property 'value'
+        $this->value['times'] = $flattenArray;
+
+        return $this;
+    }
+
+
+    /**
+     * Add additional configuration fields to the backend
+     * @return InputfieldWrapper
+     */
+    public function ___getConfigInputfields()
+    {
+        $inputfields = parent::___getConfigInputfields();
+
+
+        // get rid of required config field, because we cannot use it here
+        $inputfields->remove('required');
+
+        /** @var InputfieldInteger $f */
+        $f = $this->wire('modules')->get('InputfieldInteger');
+        $f->attr('name+id', 'numberOftimes');
+        $f->required(true);
+        $f->label = $this->_('Number of times per day');
+        $f->initValue = 2;
+        $f->attr('value', $this->numberOftimes ? $this->numberOftimes : 2);
+        $f->min = 1;
+        $f->max = 10;
+        $f->inputType = 'number';
+        $f->description = $this->_('Please enter the number of how many different times are allowed on each day.');
+        $f->notes = sprintf($this->_('For example 2 means, that you can enter 2 different times per day. A max. number of 5 different days is possible.'));
+        $f->columnWidth = 100;
+        $inputfields->add($f);
+
+        /** @var InputfieldText $f */
+        $f = $this->wire('modules')->get('InputfieldText');
+        $f->attr('name+id', 'timeformat');
+        $f->required(true);
+        $f->label = $this->_('Timeformat on frontend');
+        $f->initValue = '%R';//default value
+        $f->attr('value', $this->timeformat ? $this->timeformat : '%R');
+        $f->inputType = 'text';
+        $f->description = $this->_('Please enter the time format that the times should appear on the frontend in strftime format.');
+        $f->notes = sprintf($this->_('For example shows the time as 08:00, as 08:00 AM. You can find more examples at %s.'), '<a href="https://www.php.net/manual/de/function.strftime.php">https://www.php.net/manual/de/function.strftime.php</a>');
+        $f->columnWidth = 100;
+
+        $inputfields->add($f);
+
+        return $inputfields;
+    }
+
+    /**
+     * Allow these fields to get overwritten by user on per template base
+     * @param \ProcessWire\Field $field
+     * @return array
+     *
+     */
+    public function getConfigAllowContext(Field $field): array
+    {
+        return [
+          'numberOftimes',
+          'timeformat'
+        ];
+    }
+}

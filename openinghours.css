@@ -1,0 +1,153 @@
+/*
+Style sheet for opening hours inputfield
+by Jürgen Kern
+*/
+.openinghours-table .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.openinghours-table .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.openinghours-table .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.openinghours-table .slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.openinghours-table input:checked+.slider {
+  background-color: #3eb998;
+}
+
+.openinghours-table input:focus+.slider {
+  box-shadow: 0 0 1px #3eb998;
+}
+
+.openinghours-table input:checked+.slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+.openinghours-table tfoot tr td {
+  padding: 10px;
+  color: #8d939e;
+}
+
+/* Rounded sliders */
+.openinghours-table .slider.round {
+  border-radius: 34px;
+}
+
+.openinghours-table .slider.round:before {
+  border-radius: 50%;
+}
+
+.openinghours-table {
+  border: 1px solid #ddd;
+  margin: 10px 0;
+  border-collapse: collapse;
+}
+
+.openinghours-table thead {
+  line-height: 35px;
+}
+
+.openinghours-table thead tr th {
+  padding: 5px
+}
+
+.openinghours-table table {
+  border: none;
+}
+
+.openinghours-table tr.day-row {
+  border: 1px solid #ddd;
+}
+
+.openinghours-table tr.day-row td {
+  padding: 5px;
+}
+
+.openinghours-table .number {
+  line-height: 20px;
+}
+
+.openinghours-table .number:before {
+  content: '(#';
+}
+
+.openinghours-table .number:after {
+  content: ')';
+}
+
+.openinghours-label {
+  padding-right: 3px;
+}
+
+/* Visibility */
+tr.closed table.openinghours, tr.closed td.remove-buttons, tr.closed td.add {
+  opacity: 0;
+  transition: .3s all ease;
+}
+
+tr.open table.openinghours, tr.closed td.remove-buttons, tr.closed td.add {
+  opacity: 1;
+  transition: .3s all ease;
+}
+
+/* Style input type time */
+.openinghours-table input[type="time"] {
+  padding: 9px 5px 7px 5px;
+  font-size: 16px;
+}
+
+/* Add button styles */
+.openinghours-table button:disabled {
+  background: #ccc;
+  cursor: default;
+}
+
+/* Correction vertical align of td texts */
+.openinghours-table tr.day-row td>span {
+  position: relative;
+  top: -1px;
+}
+
+.openinghours-table td.weekday {
+  font-weight: bold;
+}
+
+.openinghours-table tr.day-ho {
+  background: #f0f3f7;
+}
+
+.openinghours-table tr.day-ho Element {}
+
+.Inputfields input:not([type="submit"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]):not(.uk-form-blank), .Inputfields textarea:not(.uk-form-blank) {
+  background: #fff;
+}

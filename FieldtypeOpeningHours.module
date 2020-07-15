@@ -1,0 +1,159 @@
+<?php
+namespace ProcessWire;
+
+class FieldtypeOpeningHours extends Fieldtype
+{
+    public function __construct()
+    {
+        include_once(__DIR__ . '/OpeningHours.php');
+        parent::__construct();
+    }
+
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => 'Openinghours',
+            'summary' => 'Fieldtype that stores opening hours for each day of the week (including additional input for holidays)',
+            'version' => '1',
+            'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
+            'icon' => 'clock-o',
+            'installs' => 'InputfieldOpeningHours',
+            'requires' => [
+                'PHP>=7.0.0',
+                'ProcessWire>=3'
+              ],
+            'author' => 'Jürgen Kern'
+        );
+    }
+
+    public function init()
+    {
+        parent::init();
+    }
+
+
+    /**
+     * @param \ProcessWire\Page $page
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * @throws \ProcessWire\WirePermissionException
+     * link the core inputfieldmarkup to this fieldtype and return the associated Inputfield
+     */
+    public function getInputfield(Page $page, Field $field)
+    {
+        return $this->modules->get('InputfieldOpeningHours');
+    }
+
+
+    /**
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * User is not allowed to change this fieldtype to another
+     */
+    public function ___getCompatibleFieldtypes(Field $field)
+    {
+        return null;
+    }
+
+
+    /**
+     * @param \ProcessWire\Page $page
+     * @param \ProcessWire\Field $field
+     * @param int|object|\ProcessWire\WireArray|string $value
+     * @return int|null|object|\ProcessWire\OpeningHours|\ProcessWire\WireArray|string
+     * will be called on sleepValue and wakeupValue
+     */
+    public function sanitizeValue(Page $page, Field $field, $value)
+    {
+        if (!$value instanceof OpeningHours) {
+            $value = $this->getBlankValue($page, $field);
+        }
+
+        // Value is instance of OpeningHours -> track changes
+        if ($value->isChanged('times')) {
+            $page->trackChange($field->name);
+        }
+
+        return $value;
+    }
+
+
+    /**
+     * Convert from DB storage to API value
+     * Given a raw value (value as stored in DB), return the value as it would appear in a Page object
+     * @param \ProcessWire\Page $page
+     * @param \ProcessWire\Field $field
+     * @param $value
+     * @return mixed|string
+     */
+    public function ___wakeupValue(Page $page, Field $field, $value)
+    {
+        $value = parent::___wakeupValue($page, $field, $value);
+        // instantiate a new object
+        $times = $this->getBlankValue($page, $field);
+        // populate the times object -> convert it from json to array
+        $daytimes = $value['times'] ? json_decode($value['times'], true) : json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true);
+        $times->times = $daytimes;
+
+        // make configurationfields callable via API
+        $times->numberOftimes = (string)$field->numberOftimes;
+        $times->timeformat = (string)$field->timeformat;
+        return $times;
+    }
+
+
+    /**
+     * Create a new instance of OpeningHours
+     *
+     * @param Page $page
+     * @param Field $field
+     * @return object
+     *
+     */
+    public function getBlankValue(Page $page, Field $field)
+    {
+        $times = new OpeningHours();
+        $times->setTrackChanges(true);
+        return $times;
+    }
+
+
+    /**
+     * Given an 'awake' value, as set by wakeupValue, convert the value back to a basic type for storage in DB
+     * @param \ProcessWire\Page $page
+     * @param \ProcessWire\Field $field
+     * @param array $value
+     * @return json array
+     */
+    public function ___sleepValue(Page $page, Field $field, $value)
+    {
+        $value = parent::___sleepValue($page, $field, $value);
+        // throw error if value is not of the right type
+        if (!$value instanceof OpeningHours) {
+            throw new \Exception($this->_('Expecting an instance of OpeningHours'));
+        }
+
+        $timesValues = $value->data['times'];
+        $timesValues = OpeningHours::createMultidimArray($timesValues);
+
+        $value = json_encode($timesValues);
+
+        $sleepValue = array(
+          'times' => $value,
+      );
+
+        return $sleepValue;
+    }
+
+
+    /**
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     */
+    public function getDatabaseSchema(Field $field)
+    {
+        $schema = parent::getDatabaseSchema($field);
+        $schema['times'] = 'TEXT DEFAULT NULL';
+        return $schema;
+    }
+}
