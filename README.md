@@ -14,32 +14,33 @@ The values will be stored in the database in 1 column in json format. It is not 
 
 ### Sanitization and validation (server-side)
 
-A lot of sanitization validation will take place inside the processInput method to 'clean' user inputs:
+A lot of sanitization and validation will take place inside the processInput method to 'clean' user inputs:
 
-- duplicate times on one day will be removed - only one entry remains of each kind per day (doesnt make sense to have same times on one day)
+- duplicate times on one day will be removed - only one entry remains of each kind per day (doesnt make sense to have same times on one day).
 - multiple empty times (empty inputs) will be removed. This can result from clicking the add button multiple times to create new inputs and do not enter any values.
 - incomplete times (only start or end time) will be removed - every opening time must have a start and end time, otherwise they are invalid.
 - inputs which are not a string and/or not in a valid time format will be deleted.
-- re-ordering of multiple times on each day by sorting the start times (fe first time is 14:00 - 18:00 and second time is 07:00 - 12:00, then the second one will be the first one after ascending re-ordering).
-- checking if start time is equal end time (if yes then an error message will be shown, because this doesnt make sense)
-- checking if start time is before end time (if not then a warning message will be shown. Could only be valid if end time is on the next day - fe: 20:00 - 03:00).
-- if the max. number of times per day (configured in the backend) is reached, then all times after that will be removed. Fe. a user enters 4 times on one day and only 3 times are allowed, then the last time will be removed automatically. The max number of times will be controlled by Jquery on the frontend too and let the user only enter the max number of times.  
+- re-ordering of multiple times on each day by sorting the start times (fe first time is 14:00 - 18:00 and second time is 07:00 - 12:00, then the second one will be the first one after ascending re-ordering). So it will be checked if the different times are in a logical order.
+- checking if start time is equal end time (if yes then an error message will be shown, because this doesn't make sense).
+- checking if start time is before end time (if not, then a warning message will be shown. Could only be valid if end time is on the next day - fe: 20:00 - 03:00).So user has to check wether the values are ok or not.
+- if the max. number of times per day (configured in the backend) is reached, then all times after that will be removed. Fe. a user enters 4 times on one day and only 3 times are allowed, then the last time will be removed automatically. The max number of times will be controlled by Jquery on the frontend too and let the user only enter the max number of times. This is only a security feature if the max value was changed in the source-code. 
 
 ## Output the values in templates
 
-There are several methods to output the times in templates.
+There are only a few methods to output the times in templates.
 The following methods return the results as (multidimensional) arrays. You can use these arrays to create the markup by yourself.
 
 ### Array methods
 The array methods doesnt render any markup. They output an array of values which can be displayed fe via foreach loops inside the templates.
-These methods provide raw data for personal markup creation. It doesnt take account to timeformatting.
+These methods provide raw data for personal markup creation. 
+Please be aware, that array methods only output the values directly from the database and therefore the timeformatting set in the confguration field in the backend will be ignored. So if you want to change the timeformat you will have to do it on your own in the frontend.
 
 #### 1) Get all times a week
 
 ```
 print_r($page->fieldname->times);
 ```
-The call will always output all times for each day of the week (including holiday) as an multidimensional assoc. array.
+The API-call will always output all times for each day of the week (including holiday) as an multidimensional assoc. array.
 ```
 [mo] => Array (
     [0] => Array (
@@ -71,7 +72,8 @@ The call will always output all times for each day of the week (including holida
 
 If a day has no times (like ho in this example) means that the company is closed on that day.
 
-#### 2) Get the opening times on a specific day.<br />
+#### 2) Get the opening times on a specific day
+
 You can use the following day abbreviation to select the specific day:<br />
 mo,tu,we,th,fr,sa,su,ho. ho stands for holiday in this case.<br />
 If you want fe all opening times for Monday you will use the following method and set as paramater the day inside the parenthesis.
@@ -89,8 +91,8 @@ This will output all opening times of Monday in the following array:
     )
 ```
 
-As you can see we will always output an array, because we can have multiple times on each day.<br />
-You can use this array to create the markup by yourself, so you are completely independent.
+As you can see the output is always an array, because each day can have multiple times and not only one.<br />
+You can use this array to create the markup on the frontend by yourself, so you are completely independent.
 
 ### Render methods
 The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.
@@ -112,7 +114,7 @@ or a little bit more advanced with some parameters
 echo $page->fieldname->render(['ulclass' => 'uk-list', 'fulldayName' => true, 'timeseparator' => '; ']);
 ```
 
-This renders all times in an unordered list:
+This renders all times as an unordered list:
 
 ```
 <ul class="uk-list">
@@ -127,7 +129,7 @@ This renders all times in an unordered list:
 </ul>
 ```
 
-#### 2) Render only the opening of one specific day.
+#### 2) Render only the opening time of one specific day.
 
 * timeseparator: separator string between the different times per day (default: ,)
 
