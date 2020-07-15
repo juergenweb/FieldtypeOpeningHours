@@ -6,9 +6,9 @@ Each day can have multiple times (max. 5) or nothing at all.<br />
 ## What it does
 
 This fieldtype let you enter various times per day in in an userfriendly UI. You can add more times by clicking an add button. The new input will be built dynamically via JQuery. The status (open/closed) can be set via a toggle switch.<br />
-![alt text](https://github.com/juergenweb/FieldtypeOpeningHours /blob/master/OpeningHours.jpg?raw=true)
+![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHours.jpg?raw=true)
 The values will be stored in the database in 1 column in json format. It is not recommended to store multiple values in 1 column but in this case it is a possibility because we have an unknown number of times on each day.
-![alt text](https://github.com/juergenweb/FieldtypeOpeningHours /blob/master/OpeningHoursDatabase.jpg?raw=true)
+![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHoursDatabase.jpg?raw=true)
 
 ### Sanitization and validation (server-side)
 
