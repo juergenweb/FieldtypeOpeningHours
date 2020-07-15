@@ -1,7 +1,7 @@
 # Inputfield-Fieldtype Openinghours for ProcessWire CMS
 An inputfield and fieldtype to store various times on each day fe opening times for a company.<br />
 This inputfield can also be used to enter the times of courses (first course starts from 08:00-9:30, second from 10:00-11:30,..), times for theater performances and so on, but it was primarily developed for opening times of a company.
-Each day can have multiple times (max. 5) or nothing at all.<br />
+Each day can have multiple times (max. 10) or nothing at all.<br />
 
 ## What it does
 
