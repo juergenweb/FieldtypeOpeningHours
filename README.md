@@ -16,7 +16,7 @@ The values will be stored in the database in 1 column in json format. It is not 
 
 A lot of sanitization and validation will take place inside the processInput method to 'clean' user inputs:
 
-- duplicate times on one day will be removed - only one entry remains of each kind per day (doesnt make sense to have same times on one day).
+- duplicate times on the same day will be removed - only one entry remains of each kind per day (doesnt make sense to have same times on one day).
 - multiple empty times (empty inputs) will be removed. This can result from clicking the add button multiple times to create new inputs and do not enter any values.
 - incomplete times (only start or end time) will be removed - every opening time must have a start and end time, otherwise they are invalid.
 - inputs which are not a string and/or not in a valid time format will be deleted.
