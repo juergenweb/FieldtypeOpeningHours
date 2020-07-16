@@ -270,9 +270,6 @@ class InputfieldOpeningHours extends Inputfield
         // 4) transform the multidim. array back to an one-dim. array like we got from POST
         $flattenArray = OpeningHours::flattenArray($validationValues, $name);
 
-
-        $this->message($flattenArray);
-
         //add it to the object to make it reachable in fieldtype as property 'value'
         $this->value['times'] = $flattenArray;
 
