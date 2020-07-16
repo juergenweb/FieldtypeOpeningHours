@@ -95,12 +95,12 @@ As you can see the output is always an array, because each day can have multiple
 You can use this array to create the markup on the frontend by yourself, so you are completely independent.
 
 ### Render methods
-The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.
+The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.<br />
+Render methods take care of the format configuration settings in the backend.
 
 #### 1) Render all opening times
 
 This renders all opening times in an unordered list. You can set some options like ulclass, fulldayName and timesseparator to change the markup a little bit.
-Render methods take care of the format configuration settings in the backend.
 
 * ulclass: enter a class for the unordered list (default:none)
 * fulldayName: output the fullname (fe Monday) is set to true and the abbreviation (fe Mo) if set to false (default: false)
