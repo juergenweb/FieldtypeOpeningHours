@@ -99,7 +99,7 @@ This will output all opening times of Monday in the following array:
 As you can see we will always output an array, because we can have multiple times on each day.<br />
 You can use this array to create the markup by yourself, so you are completely independent.
 
-#### 4) Get the opening times on a specific day without output formatting.<br />
+#### 4) Get the opening times on a specific day with output formatting.<br />
 
 ```
 print_r($page->fieldname->getTimes('mo'));
