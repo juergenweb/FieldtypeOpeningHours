@@ -9,6 +9,7 @@ class OpeningHours extends WireData
 {
     const DAYS = ['mo','tu','we','th','fr','sa','su','ho'];
 
+
     public function __construct()
     {
         //set default values
@@ -54,6 +55,19 @@ class OpeningHours extends WireData
           ['su', _('Sunday')],
           ['ho', _('Holiday')]
         ];
+    }
+
+    /**
+    * Method to return the daynames as an array with abbreviation as key and fullname as value (fe 'mo' => 'Monday')
+    * @return array
+    */
+    public static function getWeekdayNames(): array
+    {
+        $weekdayNames = [];
+        foreach (self::getDaysOfTheWeek() as $key=>$abbrName) { // key = 0,1,2,3... $abbrName = ['mo' => 'Monday'],[],....
+            $weekdayNames[$abbrName[0]] = $abbrName[1];
+        }
+        return $weekdayNames;
     }
 
 
@@ -153,9 +167,10 @@ class OpeningHours extends WireData
     * Renders a string of opening times on a specific day
     * @param string $day
     * @param string $separator
+    * @param string $timesuffix
     * @return string
     */
-    public function renderDay(string $day, string $separator = ', '): string
+    public function renderDay(string $day, string $separator = ', ', $timesuffix = ''): string
     {
         $getTimes = $this->times[$day];
         $times = [];
@@ -164,14 +179,14 @@ class OpeningHours extends WireData
             foreach ($getTimes as $value) {
                 $startTime = $this->formatTimestring($value['start']);
                 $endTime = $this->formatTimestring($value['finish']);
-                $times[] = $startTime.' - '.$endTime;
+                $times[] = $startTime.' - '.$endTime.$timesuffix;
             }
             $out = implode($separator, $times);
         } else { // single opening time or closed
             if (array_filter($getTimes[0])) {
                 $startTime = $this->formatTimestring($getTimes[0]['start']);
                 $endTime = $this->formatTimestring($getTimes[0]['finish']);
-                $times[] = $startTime.' - '.$endTime;
+                $times[] = $startTime.' - '.$endTime.$timesuffix;
                 $out = implode('-', $times);
             } else {
                 $out = $this->_('closed');
@@ -180,6 +195,7 @@ class OpeningHours extends WireData
         return $out;
     }
 
+
     /**
     * Method to render all times per week in an unordered list
     * @param array $options
@@ -187,7 +203,7 @@ class OpeningHours extends WireData
     */
     public function render(array $options = []): string
     {
-        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', '];
+        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'timesuffix' => ''];
         $options = array_merge($defaultOptions, $options);
         $out = '';
         $out .= '<ul';
@@ -197,7 +213,80 @@ class OpeningHours extends WireData
             $day = $name[0];
             $out .= '<li class="time day-'.$day.'">';
             $out .= $options['fulldayName'] ? $name[1] : ucfirst($name[0]);
-            $out .= ': '.$this->renderDay($day, $options['timeseparator']);
+            $out .= ': '.$this->renderDay($day, $options['timeseparator'], $options['timesuffix']);
+            $out .= '</li>';
+        }
+        $out .= '</ul>';
+        return $out;
+    }
+
+
+    /**
+    * Method to output a multidimens. array containing all days with same times combined
+    * @return array
+    */
+    public function combinedDays(): array
+    {
+        $equalDays = [];
+        $allOpeningHours = $this->times;
+
+        $uniqueOpeningHours = array_unique($allOpeningHours, SORT_REGULAR);
+        $nonUniqueOpeningHours = $allOpeningHours;
+
+        foreach ($uniqueOpeningHours as $day => $value) {
+            $equalDays[$day] = ['days' => [$day], 'opening_hours' => $value];
+            unset($nonUniqueOpeningHours[$day]);
+        }
+
+        foreach ($uniqueOpeningHours as $uniqueDay => $uniqueValue) {
+            foreach ($nonUniqueOpeningHours as $nonUniqueDay => $nonUniqueValue) {
+                if ($uniqueValue === $nonUniqueValue) {
+                    $equalDays[$uniqueDay]['days'][] = $nonUniqueDay;
+                }
+            }
+        }
+
+        return $equalDays;
+    }
+
+    /**
+    * Method to render combined opening times as an unordered list
+    * @param array $options - various output formatting options
+    * ulclass: Set a CSS class to the ul tag
+    * fulldayName: true/false -> if set to true the full day name (fe Monday) will be displayed, otherwise only the abbreviation (fe Mo)
+    * timeseparator : The sign between multiple opening times on the same day
+    * closedText : What should be displayed if it is closed on that day
+    * timesuffix: A text that should be displayed after the time
+    * @return string
+    */
+
+    public function renderCombinedDays(array $options = []): string
+    {
+        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'closedText' => $this->_('closed'), 'timesuffix' => ''];
+        $options = array_merge($defaultOptions, $options);
+        $out = '';
+        $out .= '<ul';
+        $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
+        $out .= '>';
+        foreach ($this->combinedDays() as $key => $arrays) {
+            $out .= '<li>';
+            $dayNames = [];
+            foreach ($arrays['days'] as $key => $names) {
+                $dayNames[] = $options['fulldayName'] ? self::getWeekdayNames()[[$names]] : ucfirst($names);
+            }
+            $out .= implode(', ', $dayNames).': ';
+            $dayTimes = [];
+            foreach ($arrays['opening_hours'] as $key => $times) {
+                if (count(array_filter($times)) === 0) {
+                    //closed
+                    $dayTimes[] = $options['closedText'];
+                } else {
+                    $start = $this->formatTimestring($times['start']);
+                    $finish = $this->formatTimestring($times['finish']);
+                    $dayTimes[] = implode(' - ', ['start' => $start, 'finish' => $finish]).$options['timesuffix'];
+                }
+            }
+            $out .= implode(', ', $dayTimes);
             $out .= '</li>';
         }
         $out .= '</ul>';
