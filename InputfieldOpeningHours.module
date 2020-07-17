@@ -311,7 +311,7 @@ class InputfieldOpeningHours extends Inputfield
         $f->attr('value', $this->timeformat ? $this->timeformat : '%R');
         $f->inputType = 'text';
         $f->description = $this->_('Please enter the time format that the times should appear on the frontend in strftime format.');
-        $f->notes = htmlspecialchars_decode(sprintf($this->_('For example shows the time as 08:00, as 08:00 AM. You can find more examples at %s.'), '[https://www.php.net/manual/de/function.strftime.php](https://www.php.net/manual/de/function.strftime.php)'));
+        $f->notes = sprintf($this->_('For example shows the time as 08:00, as 08:00 AM. You can find more examples at %s.'), '[https://www.php.net/manual/de/function.strftime.php](https://www.php.net/manual/de/function.strftime.php)');
         $f->columnWidth = 100;
 
         $inputfields->add($f);
