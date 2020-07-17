@@ -218,7 +218,6 @@ class InputfieldOpeningHours extends Inputfield
         foreach(OpeningHours::getDaysOfTheWeek() as $days){
           $day = $days[0];
           if(!array_key_exists($name.'-'.$day.'-0-start', $timeInputs)){
-            $this->message($name.'-'.$day.'-0-start');
             $timeInputs[$name.'-'.$day.'-0-start'] = '';
           }
           if(!array_key_exists($name.'-'.$day.'-0-finish', $timeInputs)){
