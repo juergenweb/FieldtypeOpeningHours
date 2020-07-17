@@ -217,11 +217,10 @@ class InputfieldOpeningHours extends Inputfield
         // 0) check if all days are present with at least 1 start and 1 end time - if not add it to the array with index 0
         foreach(OpeningHours::getDaysOfTheWeek() as $days){
           $day = $days[0];
-          if(!array_key_exists($name.'-'.$day.'-0-start', $timeInputs)){
-            $timeInputs[$name.'-'.$day.'-0-start'] = '';
-          }
-          if(!array_key_exists($name.'-'.$day.'-0-finish', $timeInputs)){
-            $timeInputs[$name.'-'.$day.'-0-finish'] = '';
+          foreach(['start', 'finish'] as $time){
+            if(!array_key_exists($name.'-'.$day.'-0-'.$time, $timeInputs)){
+              $timeInputs[$name.'-'.$day.'-0-'.$time] = '';
+            }
           }
         }
 
