@@ -8,7 +8,7 @@ namespace ProcessWire;
 class OpeningHours extends WireData
 {
     const DAYS = ['mo','tu','we','th','fr','sa','su','ho'];
-
+    const DEFAULTTIMEFORMAT = '%R';
 
     public function __construct()
     {
@@ -16,7 +16,7 @@ class OpeningHours extends WireData
         parent::__construct();
         try {
             $this->set('times', json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true));
-            $this->set('timeformat', '%R');
+            $this->set('timeformat', self::DEFAULTTIMEFORMAT);
             $this->set('numberOftimes', '2');
         } catch (WireException $e) {
         }
@@ -156,12 +156,39 @@ class OpeningHours extends WireData
     {
         if ($time) {
             $timeStamp = strtotime('10.10.2010 '.$time); // virtual date/time string needed for manipulation
-            $timeformat = $this->timeformat ? $this->timeformat : '%R';
+            $timeformat = $this->timeformat ? $this->timeformat : self::DEFAULTTIMEFORMAT;
             return strftime($timeformat, $timeStamp);
         }
         return $time;
     }
 
+    /**
+    * Method to return all opening times as an array considering the timeformat set in the backend
+    * @return array
+    */
+    public function getTimes(): array
+    {
+      $times = $this->times;
+      array_walk_recursive($times, function(&$value, &$key) {
+        if(($key === 'start') || ($key === 'finish')){
+          $value = $this->formatTimestring($value);
+        }
+      });
+      return $times;
+    }
+
+    /**
+    * Method to return all opening times as an array on a specific day considering the timeformat set in the backend
+    * @return array
+    */
+    public function getDay(string $day): array
+    {
+      $day = trim($day);
+      if(in_array($day , self::DAYS)){
+        return $this->getTimes()[$day];
+      }
+      return [];
+    }
 
     /**
     * Renders a string of opening times on a specific day
