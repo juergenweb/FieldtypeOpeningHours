@@ -17,7 +17,7 @@ A lot of sanitization validation will take place inside the processInput method 
 - duplicate times on one day will be removed - only one entry remains of each kind per day (doesnt make sense to have same times on one day)
 - multiple empty times (empty inputs) will be removed. This can result from clicking the add button multiple times to create new inputs and do not enter any values.
 - incomplete times (only start or end time) will be removed - every opening time must have a start and end time, otherwise they are invalid.
-- inputs which are not a string and/or not in a valid time format will be deleted.
+- inputs which are not a string and/or not in a valid timeformat will be deleted.
 - re-ordering of multiple times on each day by sorting the start times (fe first time is 14:00 - 18:00 and second time is 07:00 - 12:00, then the second one will be the first one after ascending re-ordering).
 - checking if start time is equal end time (if yes then an error message will be shown, because this doesnt make sense)
 - checking if start time is before end time (if not then a warning message will be shown. Could only be valid if end time is on the next day - fe: 20:00 - 03:00).
@@ -30,14 +30,15 @@ The following methods return the results as (multidimensional) arrays. You can u
 
 ### Array methods
 The array methods doesnt render any markup. They output an array of values which can be displayed fe via foreach loops inside the templates.
-These methods provide raw data for personal markup creation. It doesnt take account to timeformatting.
+These methods provide raw data for personal markup creation.
 
-#### 1) Get all times a week
+#### 1) Get all times a week without output formatting
 
 ```
 print_r($page->fieldname->times);
 ```
 The call will always output all times for each day of the week (including holiday) as an multidimensional assoc. array.
+Be aware that this API call does not consider the timeformat set in the backend configuration. It outputs the values as stored in the database.
 ```
 [mo] => Array (
     [0] => Array (
@@ -69,10 +70,18 @@ The call will always output all times for each day of the week (including holida
 
 If a day has no times (like ho in this example) means that the company is closed on that day.
 
-#### 2) Get the opening times on a specific day.<br />
+#### 2) Get all times a week with output formatting
+
+```
+print_r($page->fieldname->getTimes());
+```
+Returns the same array as 1) but output the formatted values according to the timeformat set in the configuration.
+
+#### 3) Get the opening times on a specific day without output formatting.<br />
 You can use the following day abbreviation to select the specific day:<br />
 mo,tu,we,th,fr,sa,su,ho. ho stands for holiday in this case.<br />
 If you want fe all opening times for Monday you will use the following method and set as paramater the day inside the parenthesis.
+Be aware that this API call does not consider the timeformat set in the backend configuration. It outputs the values as stored in the database.
 
 ```
 print_r($page->fieldname->times['mo']);
@@ -89,6 +98,13 @@ This will output all opening times of Monday in the following array:
 
 As you can see we will always output an array, because we can have multiple times on each day.<br />
 You can use this array to create the markup by yourself, so you are completely independent.
+
+#### 4) Get the opening times on a specific day without output formatting.<br />
+
+```
+print_r($page->fieldname->getTimes('mo'));
+```
+Returns the same array as 3) but output the formatted values according to the timeformat set in the configuration.
 
 #### 3) Get combined days with same opening hours.<br />
 Sometimes we have same opening hours on different days. With this method you can combine them and output an array.
@@ -226,7 +242,7 @@ You can also set the output formatting of the time string (default is %R which i
 
 ### To do
 
-At the moment nothing planned. Maybe multilang. settings of time format.
+At the moment nothing planned. Maybe multilang. settings of timeformat.
 
 ## How to install
 
