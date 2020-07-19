@@ -194,7 +194,7 @@ class OpeningHours extends WireData
             $out = implode($separator, $times);
         } else { // single opening time or closed
             if (array_filter($getTimes[0])) {
-                $times[] = $value['start'].' - '.$value['finish'].$timesuffix;
+                $times[] = $getTimes[0]['start'].' - '.$getTimes[0]['finish'].$timesuffix;
                 $out = implode('-', $times);
             } else {
                 $out = $this->_('closed');
