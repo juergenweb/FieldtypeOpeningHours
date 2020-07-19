@@ -107,7 +107,7 @@ class FieldtypeOpeningHours extends Fieldtype
     {
       $times = $value;
       if($times){
-        $this->timeFormat =  $field->timeformat; // get timformat from inputfield configuration settings
+        $this->timeformat =  $field->timeformat; // get timformat from inputfield configuration settings
         array_walk_recursive($times, function(&$value, &$key) {
           if(($key === 'start') || ($key === 'finish')){
             if($value){
