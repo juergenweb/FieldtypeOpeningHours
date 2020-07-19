@@ -18,7 +18,7 @@ class InputfieldOpeningHours extends Inputfield
         return array(
             'title' => 'Inputfield Opening Hours',
             'summary' => 'Renders an input field for entering opening hours',
-            'version' => 1,
+            'version' => 1.1,
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'permanent' => false,
@@ -42,6 +42,12 @@ class InputfieldOpeningHours extends Inputfield
         //Add CSS and JS files for this inputfield
         $this->config->styles->add(config()->urls->{$this->className} . 'openinghours.css?v='.$version);
         $this->config->scripts->add(config()->urls->{$this->className} . 'openinghours.js?v='.$version);
+        if($this->languages) foreach($this->languages as $language) {
+    			/** @var Language $language */
+    			// account for alternate formats in other languages
+    			if($language->isDefault()) continue;
+    			$this->set("timeformat$language", '');
+    		}
         return parent::init();
     }
 
@@ -280,6 +286,8 @@ class InputfieldOpeningHours extends Inputfield
     {
         $inputfields = parent::___getConfigInputfields();
 
+        $languages = $this->wire('languages');
+
         // get rid of required config field, because we cannot use it here
         $inputfields->remove('required');
 
@@ -304,8 +312,15 @@ class InputfieldOpeningHours extends Inputfield
         $f->required(true);
         $f->label = $this->_('Timeformat on frontend');
         $f->initValue = '%R';//default value
-        $f->attr('value', $this->timeformat ? $this->timeformat : '%R');
         $f->inputType = 'text';
+        $f->attr('value', $this->timeformat ? $this->timeformat : '%R');
+        if($languages) {
+    			$f->useLanguages = true;
+    			foreach($languages as $language) {
+    				if($language->isDefault()) continue;
+    				$f->set("value$language", (string) $this->get("timeformat$language"));
+    			}
+    		}
         $f->description = $this->_('Please enter the time format in which the times should be displayed on the frontend. Use date() or sprintf() syntax.');
         $f->notes = sprintf($this->_('For example a timeformat of %s shows the time as 08:00, a timeformat of %s will be rendered as 08:00 AM. You can find more examples at %s or %s.'), '%R', '%r', '[https://www.php.net/manual/de/function.strftime.php](https://www.php.net/manual/de/function.strftime.php)', '[https://www.php.net/manual/de/function.date.php](https://www.php.net/manual/de/function.date.php)');
         $f->columnWidth = 100;
