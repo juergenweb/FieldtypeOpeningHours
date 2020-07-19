@@ -3,12 +3,14 @@ namespace ProcessWire;
 
 class FieldtypeOpeningHours extends Fieldtype
 {
+
     public function __construct()
     {
         include_once(__DIR__ . '/OpeningHours.php');
         //set default configuration values if they are not present in the database
         $this->timeformat = '%R';
         $this->numberOftimes = 2;
+
         parent::__construct();
     }
 
@@ -17,7 +19,7 @@ class FieldtypeOpeningHours extends Fieldtype
         return array(
             'title' => 'Openinghours',
             'summary' => 'Fieldtype that stores opening hours for each day of the week (including additional input for holidays)',
-            'version' => '1',
+            'version' => '1.1',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'installs' => 'InputfieldOpeningHours',
@@ -107,7 +109,18 @@ class FieldtypeOpeningHours extends Fieldtype
     {
       $times = $value;
       if($times){
-        $this->timeformat =  $field->timeformat; // get timformat from inputfield configuration settings
+        $userLang = wire('user')->language->id;
+        foreach(wire('languages') as $language) {
+          if($language->isDefault()){
+            $this->timeformat =  $field->timeformat;
+          } else if($language->id == $userLang){
+            $this->timeformat = $field->get("timeformat$userLang");
+          }
+
+            //print_r($this->get("timeformat$language"));
+          //$this->timeformat =  $field->timeformat; // get timformat from inputfield configuration settings;
+        }
+        //$this->timeformat =  $field->timeformat; // get timformat from inputfield configuration settings;
         array_walk_recursive($times, function(&$value, &$key) {
           if(($key === 'start') || ($key === 'finish')){
             if($value){
