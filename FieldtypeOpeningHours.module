@@ -6,6 +6,9 @@ class FieldtypeOpeningHours extends Fieldtype
     public function __construct()
     {
         include_once(__DIR__ . '/OpeningHours.php');
+        //set default configuration values if they are not present in the database
+        $this->timeformat = '%R';
+        $this->numberOftimes = 2;
         parent::__construct();
     }
 
@@ -107,8 +110,9 @@ class FieldtypeOpeningHours extends Fieldtype
         $this->timeFormat =  $field->timeformat; // get timformat from inputfield configuration settings
         array_walk_recursive($times, function(&$value, &$key) {
           if(($key === 'start') || ($key === 'finish')){
-            if($value)
-              $value = OpeningHours::formatTimestring($value, $this->timeFormat);
+            if($value){
+              $value = OpeningHours::formatTimestring($value, $this->timeformat);
+            }
           }
         });
         return $times;
