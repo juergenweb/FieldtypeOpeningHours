@@ -149,6 +149,30 @@ class OpeningHours extends WireData
 
 
     /**
+   * Return all predefined PHP date() formats for use as times
+   *
+   * Note: this method moved to the WireDateTime class and is kept here for backwards compatibility.
+   *
+   * @deprecated Use WireDateTime class instead
+   * @return array
+   *
+   */
+    static public function getTimeFormats(): array
+    {
+      return WireDateTime::_getTimeFormats();
+    }
+
+
+    /**
+    * Return all predefined PHP strftime() formats for use as times
+    * @return array
+    */
+    static public function getStrftimeFormats(): array
+    {
+      return ['%H','%k','%I','%l','%M','%p','%P','%r','%R','%S','%T','%X','%z','%Z'];
+    }
+
+    /**
     * Format a time value according to the format settings in the field configuration
     * fe 16:00 will be formatted to 04:00 AM if strftime setting is %r
     * @param string $time
@@ -162,14 +186,21 @@ class OpeningHours extends WireData
             $timeformat = $timeformat ? $timeformat : self::DEFAULTTIMEFORMAT;
             if (strpos($timeformat, '%') !== false) {
               if(strspn($timeformat, '%') == 1){
+                if(!in_array($timeformat, self::getStrftimeFormats())){
+                  $timeformat = self::DEFAULTTIMEFORMAT;
+                }
                 return strftime($timeformat, $timeStamp);
               }
               return '?';
             } else {
               $d = new \DateTime($dateTime);
-              return $d->format($timeformat); // 012345
-            }
+              //check if date format is correct -> otherwise set it back to a predefined default format
+              if(!in_array($timeformat, self::getTimeFormats())){
+                $timeformat = 'H:i'; //set it to a default format to prevent error messages
+              }
+              return $d->format($timeformat);
 
+            }
         }
         return $time;
     }
