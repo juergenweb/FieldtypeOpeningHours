@@ -7,12 +7,11 @@ class InputfieldOpeningHours extends Inputfield
     public function __construct()
     {
         include_once(__DIR__ . '/OpeningHours.php');
-        //define configuration field properties to make them callable inside this class
-        $this->set('numberOftimes', 2);
-        $this->set('timeformat', '%R');
+        //set configuration field properties to make them callable inside this class
+        $this->set('numberOftimes', '%R'); // must have value (required)
+        $this->set('timeformat', 2);// must have value (required)
         parent::__construct();
     }
-
 
     public static function getModuleInfo()
     {
@@ -40,14 +39,14 @@ class InputfieldOpeningHours extends Inputfield
     {
         $info = $this->getModuleInfo();
         $version = $info['version'];
-        //Add CSS and JS files
+        //Add CSS and JS files for this inputfield
         $this->config->styles->add(config()->urls->{$this->className} . 'openinghours.css?v='.$version);
         $this->config->scripts->add(config()->urls->{$this->className} . 'openinghours.js?v='.$version);
         return parent::init();
     }
 
     /**
-    * Method to render the inputfields in th backend
+    * Method to render the inputfields in the backend
     * @return string
     */
     public function ___render()
@@ -67,6 +66,7 @@ class InputfieldOpeningHours extends Inputfield
         $output .= '<tbody>';
 
         $i = 0;
+
         foreach ($times as $dayAbbr=>$daytimesArray) {
 
             //set checkbox status depending on first value in times array
@@ -79,7 +79,7 @@ class InputfieldOpeningHours extends Inputfield
             }
             $output .= '<tr id="'.$name.'-row-'.$dayAbbr.'" class="day-row day-'.$dayAbbr.' '.$statusClass.'">';
             // Output name of the weekday
-            $output .= '<td class="weekday"><span>'.OpeningHours::getDaysOfTheWeek()[$i][1].'</span></td>';
+            $output .= '<td class="weekday"><span>'.OpeningHours::getWeekdays()[$dayAbbr][1].'</span></td>';
             // Output checkbox switcher
             $output .= '<td>';
             $output .= '<label class="switch">';
@@ -137,8 +137,9 @@ class InputfieldOpeningHours extends Inputfield
     public function sanitizeValidateValues(array $times, string $fieldName): array
     {
       $sanitizedValues = [];
-      foreach(OpeningHours::getDaysOfTheWeek() as $key=>$value){
-        $value = [$value[0] => $value[1]];
+      foreach(OpeningHours::getWeekdays() as $key=>$value){ //key = mo,tu,.. value = ['Mo' => 'Monday']
+        //$value = [$value[0] => $value[1]];
+        $value = [$key=> $value[1]];
         foreach ($value as $dayAbbr=>$dayName) {
           $timeValues = [];
             foreach ($times as $key=>$timesArray) { //key = mo,tu,.. value = multidimes. array of times on this day
@@ -203,7 +204,6 @@ class InputfieldOpeningHours extends Inputfield
         $name = $this->attr('name');
         $value = $this->attr('value');
 
-
         //input object includes always input values from every field on the page, so lets filter out only the inputs from this field
         //we need to do this, because the number of values is variable - so extract only values that starts with fieldname_.
         $timeInputs = [];
@@ -214,18 +214,17 @@ class InputfieldOpeningHours extends Inputfield
         }
 
 
-        // 0) check if all days are present with at least 1 start and 1 end time - if not add it to the array with index 0
-        foreach(OpeningHours::getDaysOfTheWeek() as $days){
-          $day = $days[0];
+        // 1) check if all days are present with at least 1 start and 1 end time - if not add it to the array with index 0
+        foreach(OpeningHours::getWeekdays() as $key => $days){
           foreach(['start', 'finish'] as $time){
-            if(!array_key_exists($name.'-'.$day.'-0-'.$time, $timeInputs)){
-              $timeInputs[$name.'-'.$day.'-0-'.$time] = '';
+            if(!array_key_exists($name.'-'.$key.'-0-'.$time, $timeInputs)){
+              $timeInputs[$name.'-'.$key.'-0-'.$time] = '';
             }
           }
         }
 
 
-        // 1) Set inputs as a string and check if it is in a valid time format(H:i) - otherwise get rid of them
+        // 2) Set inputs as a string and check if it is in a valid time format(H:i) - otherwise get rid of them
         $cleanedValues = [];
         foreach($timeInputs as $key=>$value){
           $value = strval($value);
@@ -243,29 +242,27 @@ class InputfieldOpeningHours extends Inputfield
           }
         }
 
-
-
-        // 2) create multidimensional array from onedimensional POST array -> needed for sanitization and validation on per days base afterwards
+        // 3) create multidimensional array from onedimensional POST array -> needed for sanitization and validation on per days base afterwards
         $times = OpeningHours::createMultidimArray($cleanedValues);
 
-        // 3) sanitize all values
+        // 4) sanitize all values
         $sanitizedValues = $this->sanitizeValidateValues($times, $name);
 
-        // 4) set validate values back
+        // 5) set validate values back
         $validationValues = [];
         //validate if endtime is after starttime
-        foreach (OpeningHours::getDaysOfTheWeek() as $key=>$day) {
+        foreach (OpeningHours::getWeekdays() as $dayAbbr=>$days) {
             //foreach($times as $key=>$value){
            foreach ($sanitizedValues as $key=>$value) { //key = mo,tu,..
-             if ($key === $day[0]) {
+             if ($key === $dayAbbr) {
                  foreach ($value as $keyNumber => $timesArray) {
-                     $validationValues[$day[0]][$keyNumber] = $timesArray;
+                     $validationValues[$dayAbbr][$keyNumber] = $timesArray;
                  }
              }
            }
         }
 
-        // 4) transform the multidim. array back to an one-dim. array like we got from POST
+        // 6) transform the multidim. array back to an one-dim. array like we got from POST
         $flattenArray = OpeningHours::flattenArray($validationValues, $name);
 
         //add it to the object to make it reachable in fieldtype as property 'value'
@@ -282,7 +279,6 @@ class InputfieldOpeningHours extends Inputfield
     public function ___getConfigInputfields()
     {
         $inputfields = parent::___getConfigInputfields();
-
 
         // get rid of required config field, because we cannot use it here
         $inputfields->remove('required');
@@ -310,8 +306,8 @@ class InputfieldOpeningHours extends Inputfield
         $f->initValue = '%R';//default value
         $f->attr('value', $this->timeformat ? $this->timeformat : '%R');
         $f->inputType = 'text';
-        $f->description = $this->_('Please enter the time format that the times should appear on the frontend in strftime format.');
-        $f->notes = sprintf($this->_('For example shows the time as 08:00, as 08:00 AM. You can find more examples at %s.'), '[https://www.php.net/manual/de/function.strftime.php](https://www.php.net/manual/de/function.strftime.php)');
+        $f->description = $this->_('Please enter the time format in which the times should be displayed on the frontend. Use date() or sprintf() syntax.');
+        $f->notes = sprintf($this->_('For example a timeformat of %s shows the time as 08:00, a timeformat of %s will be rendered as 08:00 AM. You can find more examples at %s or %s.'), '%R', '%r', '[https://www.php.net/manual/de/function.strftime.php](https://www.php.net/manual/de/function.strftime.php)', '[https://www.php.net/manual/de/function.date.php](https://www.php.net/manual/de/function.date.php)');
         $f->columnWidth = 100;
 
         $inputfields->add($f);
