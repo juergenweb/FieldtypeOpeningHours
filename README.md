@@ -32,13 +32,13 @@ The following methods return the results as (multidimensional) arrays. You can u
 The array methods doesnt render any markup. They output an array of values which can be displayed fe via foreach loops inside the templates.
 These methods provide raw data for personal markup creation.
 
-#### 1) Get all times a week without output formatting
+#### 1) Get all times a week
 
 ```
 print_r($page->fieldname->times);
 ```
 The call will always output all times for each day of the week (including holiday) as an multidimensional assoc. array.
-Be aware that this API call does not consider the timeformat set in the backend configuration. It outputs the values as stored in the database.
+
 ```
 [mo] => Array (
     [0] => Array (
@@ -70,18 +70,21 @@ Be aware that this API call does not consider the timeformat set in the backend 
 
 If a day has no times (like ho in this example) means that the company is closed on that day.
 
-#### 2) Get all times a week with output formatting
+#### 2) Get all times a week without output formatting
+If you need the values as stored in the database without output formatting, you have to prevent output formatting by setting it to false. This prevent the formatValue() method to change the times to the format you have set in the backend.
 
 ```
-print_r($page->fieldname->getTimes());
+$page->setOutputFormatting(false);
+print_r($page->fieldname->times);
+$page->setOutputFormatting(true);
 ```
-Returns the same array as 1) but output the formatted values according to the timeformat set in the configuration.
+Be aware to not forget to set output formatting to true afterwards.
 
 #### 3) Get the opening times on a specific day without output formatting.<br />
 You can use the following day abbreviation to select the specific day:<br />
 mo,tu,we,th,fr,sa,su,ho. ho stands for holiday in this case.<br />
 If you want fe all opening times for Monday you will use the following method and set as paramater the day inside the parenthesis.
-Be aware that this API call does not consider the timeformat set in the backend configuration. It outputs the values as stored in the database.
+
 
 ```
 print_r($page->fieldname->times['mo']);
@@ -99,14 +102,8 @@ This will output all opening times of Monday in the following array:
 As you can see we will always output an array, because we can have multiple times on each day.<br />
 You can use this array to create the markup by yourself, so you are completely independent.
 
-#### 4) Get the opening times on a specific day with output formatting.<br />
 
-```
-print_r($page->fieldname->getTimes('mo'));
-```
-Returns the same array as 3) but output the formatted values according to the timeformat set in the configuration.
-
-#### 3) Get combined days with same opening hours.<br />
+#### 4) Get combined days with same opening hours.<br />
 Sometimes we have same opening hours on different days. With this method you can combine them and output an array.
 
 ```
