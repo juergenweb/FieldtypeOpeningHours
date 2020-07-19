@@ -1,7 +1,7 @@
 # Inputfield-Fieldtype Openinghours for ProcessWire CMS
 An inputfield and fieldtype to store various times on each day fe opening times for a company.<br />
 This inputfield can also be used to enter the times of courses (first course starts from 08:00-9:30, second from 10:00-11:30,..), times for theater performances and so on, but it was primarily developed for opening times of a company.
-Each day can have multiple times (max. 5) or nothing at all.<br />
+Each day can have multiple times (max. 10) or nothing at all.<br />
 
 ## What it does
 
@@ -231,6 +231,10 @@ This renders all combined days with same times in an unordered list:
 </ul>
 ```
 
+### Multilanguage
+All static texts are fully translateable (frontend and backend). The timeformat on the frontend can also be set for each language in the backend configuration of the inputfield (fe Default %R and English %r).
+This will only be taken into account if outputformatting is not set to false (default is true).
+
 ### Field Settings
 
 You can select how many times are allowed on each day (minimum 1, maximum 10, default 2). In most cases you will need two times on each day: morning and afternoon.<br />
@@ -239,7 +243,7 @@ You can also set the output formatting of the time string (default is %R which i
 
 ### To do
 
-At the moment nothing planned. Maybe multilang. settings of timeformat.
+At the moment nothing planned.
 
 ## How to install
 
