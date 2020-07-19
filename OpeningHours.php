@@ -175,10 +175,11 @@ class OpeningHours extends WireData
     /**
     * Format a time value according to the format settings in the field configuration
     * fe 16:00 will be formatted to 04:00 AM if strftime setting is %r
-    * @param string $time
+    * @param string|null $time
+    * @param string|null $timeformat
     * @return string
     */
-    public static function formatTimestring(string $time, string $timeformat): string
+    public static function formatTimestring($time, $timeformat): string
     {
         if ($time) {
             $dateTime = '10.10.2010 '.$time;
