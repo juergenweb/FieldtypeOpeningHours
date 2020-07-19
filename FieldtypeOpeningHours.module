@@ -61,19 +61,17 @@ class FieldtypeOpeningHours extends Fieldtype
      * @param \ProcessWire\Field $field
      * @param int|object|\ProcessWire\WireArray|string $value
      * @return int|null|object|\ProcessWire\OpeningHours|\ProcessWire\WireArray|string
-     * will be called on sleepValue and wakeupValue
+     * will be called on before sleepValue and after wakeupValue
      */
     public function sanitizeValue(Page $page, Field $field, $value)
     {
         if (!$value instanceof OpeningHours) {
             $value = $this->getBlankValue($page, $field);
         }
-
         // Value is instance of OpeningHours -> track changes
         if ($value->isChanged('times')) {
             $page->trackChange($field->name);
         }
-
         return $value;
     }
 
@@ -81,6 +79,7 @@ class FieldtypeOpeningHours extends Fieldtype
     /**
      * Convert from DB storage to API value
      * Given a raw value (value as stored in DB), return the value as it would appear in a Page object
+     * get value directly from the db and sends it to sanatize method
      * @param \ProcessWire\Page $page
      * @param \ProcessWire\Field $field
      * @param $value
@@ -94,11 +93,23 @@ class FieldtypeOpeningHours extends Fieldtype
         // populate the times object -> convert it from json to array
         $daytimes = $value['times'] ? json_decode($value['times'], true) : json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true);
         $times->times = $daytimes;
-
         // make configurationfields callable via API
         $times->numberOftimes = (string)$field->numberOftimes;
         $times->timeformat = (string)$field->timeformat;
         return $times;
+    }
+
+
+    public function formatValue(Page $page, Field $field, $value)
+    {
+      $times = $value;
+      $this->timeFormat = $field->timeformat;//get timformat from inputfield configuration settings
+      array_walk_recursive($times, function(&$value, &$key) {
+        if(($key === 'start') || ($key === 'finish')){
+          $value = OpeningHours::formatTimestring($value, $this->timeFormat);
+        }
+      });
+      return $times;
     }
 
 
@@ -120,6 +131,7 @@ class FieldtypeOpeningHours extends Fieldtype
 
     /**
      * Given an 'awake' value, as set by wakeupValue, convert the value back to a basic type for storage in DB
+     * gets the value from the sanatize method
      * @param \ProcessWire\Page $page
      * @param \ProcessWire\Field $field
      * @param array $value
@@ -135,12 +147,12 @@ class FieldtypeOpeningHours extends Fieldtype
 
         $timesValues = $value->data['times'];
         $timesValues = OpeningHours::createMultidimArray($timesValues);
-
+        //create json string for storage in the DB
         $value = json_encode($timesValues);
 
         $sleepValue = array(
           'times' => $value,
-      );
+        );
 
         return $sleepValue;
     }
