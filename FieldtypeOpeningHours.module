@@ -103,7 +103,8 @@ class FieldtypeOpeningHours extends Fieldtype
     public function formatValue(Page $page, Field $field, $value)
     {
       $times = $value;
-      $this->timeFormat = $field->timeformat;//get timformat from inputfield configuration settings
+      $this->timeFormat =  $field->timeformat ? $field->timeformat : '%R';//get timformat from inputfield configuration settings
+
       array_walk_recursive($times, function(&$value, &$key) {
         if(($key === 'start') || ($key === 'finish')){
           $value = OpeningHours::formatTimestring($value, $this->timeFormat);
