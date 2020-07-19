@@ -8,8 +8,8 @@ class InputfieldOpeningHours extends Inputfield
     {
         include_once(__DIR__ . '/OpeningHours.php');
         //set configuration field properties to make them callable inside this class
-        $this->set('numberOftimes', '%R'); // must have value (required)
-        $this->set('timeformat', 2);// must have value (required)
+        $this->set('numberOftimes', 2); // must have value (required)
+        $this->set('timeformat', '%R');// must have value (required)
         parent::__construct();
     }
 
