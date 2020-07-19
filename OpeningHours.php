@@ -7,13 +7,14 @@ namespace ProcessWire;
 
 class OpeningHours extends WireData
 {
-    const DAYS = ['mo','tu','we','th','fr','sa','su','ho'];
+
     const DEFAULTTIMEFORMAT = '%R';
 
     public function __construct()
     {
         //set default values
         parent::__construct();
+
         try {
             $this->set('times', json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true));
             $this->set('timeformat', self::DEFAULTTIMEFORMAT);
@@ -41,49 +42,50 @@ class OpeningHours extends WireData
 
     /**
     * Method to return an multidimensional array with day abbreviations as key and daynames as value
+    * First item in sub-array is the abbreviation and the second the fullname of the day
     * @return array
     */
-    public static function getDaysOfTheWeek(): array
+    public static function getWeekdays(): array
     {
         return [
-          ['mo', _('Monday')],
-          ['tu', _('Tuesday')],
-          ['we', _('Wednesday')],
-          ['th', _('Thursday')],
-          ['fr', _('Friday')],
-          ['sa', _('Saturday')],
-          ['su', _('Sunday')],
-          ['ho', _('Holiday')]
+            'mo' => [_('Mo'), _('Monday')],
+            'tu' => [_('Tu'), _('Tuesday')],
+            'we' => [_('We'), _('Wednesday')],
+            'th' => [_('Th'), _('Thursday')],
+            'fr' => [_('Fr'), _('Friday')],
+            'sa' => [_('Sa'), _('Saturday')],
+            'su' => [_('Su'), _('Sunday')],
+            'ho' => [_('Ho'), _('Holiday')]
         ];
     }
 
     /**
-    * Method to return the daynames as an array with abbreviation as key and fullname as value (fe 'mo' => 'Monday')
+    * Method to return only the lowercase day abbreviations in an array (['mo','tu',....])
     * @return array
     */
-    public static function getWeekdayNames(): array
+    public static function getDayAbbreviations(): array
     {
-        $weekdayNames = [];
-        foreach (self::getDaysOfTheWeek() as $key=>$abbrName) { // key = 0,1,2,3... $abbrName = ['mo' => 'Monday'],[],....
-            $weekdayNames[$abbrName[0]] = $abbrName[1];
+        $days = [];
+        foreach(self::getWeekdays() as $k=>$v){
+          $days[] = $v;
         }
-        return $weekdayNames;
+        return $days;
     }
 
 
     /**
     * Create a multidimensional array of all times from the onedimensional POST array after form submission
-    * This step is requiered for various sanitizations and validations of the input values which cannot be processed from an onedimensional array
+    * This step is requiered for various sanitizations and validations of the input values which cannot be processed from an one-dimensional array
     * @param array $values
     * @return array
     */
     public static function createMultidimArray(array $values): array
     {
         $temp_array = [];
-        foreach (self::getDaysOfTheWeek() as $dayAbbr=>$dayname) {
+        foreach (self::getWeekdays() as $key=>$dayname) {
             foreach ($values as $k=>$v) {
-                if ($dayname[0] === (explode('-', $k)[1])) {
-                    $temp_array[$dayname[0]][] = $v;
+                if ($key === (explode('-', $k)[1])) {
+                    $temp_array[$key][] = $v;
                 }
             }
         }
@@ -112,16 +114,16 @@ class OpeningHours extends WireData
     public static function flattenArray(array $array, string $fieldname): array
     {
         $flattenArray = [];
-        foreach (self::getDaysOfTheWeek() as $key => $day) { //key = 0,1,2, day = [mo => Monday]
+        foreach (self::getWeekdays() as $key => $day) { //key = mo,tu,... day = [Mo => Monday]
 
-            foreach ($array as $dayAbbr=>$timesarray) { // key = mo,tu,we,...value = times array
+            foreach ($array as $dayAbbr=>$timesarray) { // key = mo,tu,...value = [times array]
 
-                if ($day[0] === $dayAbbr) {
-                    foreach ($timesarray as $keyNum=>$dayArray) { // key = 0,1,2, value = [start] => 08:00, [finish] => 16:00
+                if ($key === $dayAbbr) {
+                    foreach ($timesarray as $keyNum=>$dayArray) { // key = 0,1,2, value = ['start' => '08:00', 'finish' => '16:00']
 
-                        foreach ($dayArray as $key=>$value) {
-                            $key = $fieldname.'-'.$day[0].'-'.$keyNum.'-'.$key;
-                            $flattenArray[$key] = $value;
+                        foreach ($dayArray as $name=>$value) {
+                            $createdKey = $fieldname.'-'.$key.'-'.$keyNum.'-'.$name;
+                            $flattenArray[$createdKey] = $value;
                         }
                     }
                 }
@@ -152,43 +154,26 @@ class OpeningHours extends WireData
     * @param string $time
     * @return string
     */
-    private function formatTimestring(string $time): string
+    public static function formatTimestring(string $time, string $timeformat): string
     {
         if ($time) {
-            $timeStamp = strtotime('10.10.2010 '.$time); // virtual date/time string needed for manipulation
-            $timeformat = $this->timeformat ? $this->timeformat : self::DEFAULTTIMEFORMAT;
-            return strftime($timeformat, $timeStamp);
+            $dateTime = '10.10.2010 '.$time;
+            $timeStamp = strtotime($dateTime); // virtual date/time string needed for manipulation
+            $timeformat = $timeformat ? $timeformat : self::DEFAULTTIMEFORMAT;
+            if (strpos($timeformat, '%') !== false) {
+              if(strspn($timeformat, '%') == 1){
+                return strftime($timeformat, $timeStamp);
+              }
+              return '?';
+            } else {
+              $d = new \DateTime($dateTime);
+              return $d->format($timeformat); // 012345
+            }
+
         }
         return $time;
     }
 
-    /**
-    * Method to return all opening times as an array considering the timeformat set in the backend
-    * @return array
-    */
-    public function getTimes(): array
-    {
-      $times = $this->times;
-      array_walk_recursive($times, function(&$value, &$key) {
-        if(($key === 'start') || ($key === 'finish')){
-          $value = $this->formatTimestring($value);
-        }
-      });
-      return $times;
-    }
-
-    /**
-    * Method to return all opening times as an array on a specific day considering the timeformat set in the backend
-    * @return array
-    */
-    public function getDay(string $day): array
-    {
-      $day = trim($day);
-      if(in_array($day , self::DAYS)){
-        return $this->getTimes()[$day];
-      }
-      return [];
-    }
 
     /**
     * Renders a string of opening times on a specific day
@@ -204,16 +189,12 @@ class OpeningHours extends WireData
         $numberOfTimes = count($getTimes);
         if ($numberOfTimes > 1) { // multiple opening times per day
             foreach ($getTimes as $value) {
-                $startTime = $this->formatTimestring($value['start']);
-                $endTime = $this->formatTimestring($value['finish']);
-                $times[] = $startTime.' - '.$endTime.$timesuffix;
+                $times[] = $value['start'].' - '.$value['finish'].$timesuffix;
             }
             $out = implode($separator, $times);
         } else { // single opening time or closed
             if (array_filter($getTimes[0])) {
-                $startTime = $this->formatTimestring($getTimes[0]['start']);
-                $endTime = $this->formatTimestring($getTimes[0]['finish']);
-                $times[] = $startTime.' - '.$endTime.$timesuffix;
+                $times[] = $value['start'].' - '.$value['finish'].$timesuffix;
                 $out = implode('-', $times);
             } else {
                 $out = $this->_('closed');
@@ -236,10 +217,9 @@ class OpeningHours extends WireData
         $out .= '<ul';
         $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
         $out .= '>';
-        foreach (self::getDaysOfTheWeek() as $day => $name) {
-            $day = $name[0];
+        foreach (self::getWeekdays() as $day => $name) {
             $out .= '<li class="time day-'.$day.'">';
-            $out .= $options['fulldayName'] ? $name[1] : ucfirst($name[0]);
+            $out .= $options['fulldayName'] ? $name[1] : $name[0];
             $out .= ': '.$this->renderDay($day, $options['timeseparator'], $options['timesuffix']);
             $out .= '</li>';
         }
@@ -298,8 +278,8 @@ class OpeningHours extends WireData
         foreach ($this->combinedDays() as $key => $arrays) {
             $out .= '<li>';
             $dayNames = [];
-            foreach ($arrays['days'] as $key => $names) {
-                $dayNames[] = $options['fulldayName'] ? self::getWeekdayNames()[[$names]] : ucfirst($names);
+            foreach ($arrays['days'] as $key => $dayAbbr) {
+                $dayNames[] = $options['fulldayName'] ? self::getWeekdays()[$dayAbbr][1] : self::getWeekdays()[$dayAbbr][0];
             }
             $out .= implode(', ', $dayNames).': ';
             $dayTimes = [];
@@ -308,9 +288,7 @@ class OpeningHours extends WireData
                     //closed
                     $dayTimes[] = $options['closedText'];
                 } else {
-                    $start = $this->formatTimestring($times['start']);
-                    $finish = $this->formatTimestring($times['finish']);
-                    $dayTimes[] = implode(' - ', ['start' => $start, 'finish' => $finish]).$options['timesuffix'];
+                    $dayTimes[] = implode(' - ', ['start' => $times['start'], 'finish' => $times['finish']]).$options['timesuffix'];
                 }
             }
             $out .= implode(', ', $dayTimes);
