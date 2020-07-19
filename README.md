@@ -6,7 +6,7 @@ Each day can have multiple times (max. 5) or nothing at all.<br />
 ## What it does
 
 This fieldtype let you enter various times per day in in an userfriendly UI. You can add more times by clicking an add button. The new input will be built dynamically via JQuery. The status (open/closed) can be set via a toggle switch.<br />
-![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHours.jpg?raw=true)
+![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHours.jpg?raw=true)<br />
 The values will be stored in the database in 1 column in json format. It is not recommended to store multiple values in 1 column but in this case it is a possibility because we have an unknown number of times on each day.
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHoursDatabase.jpg?raw=true)
 
@@ -80,7 +80,7 @@ $page->setOutputFormatting(true);
 ```
 Be aware to not forget to set output formatting to true afterwards.
 
-#### 3) Get the opening times on a specific day without output formatting.<br />
+#### 3) Get the opening times on a specific day<br />
 You can use the following day abbreviation to select the specific day:<br />
 mo,tu,we,th,fr,sa,su,ho. ho stands for holiday in this case.<br />
 If you want fe all opening times for Monday you will use the following method and set as paramater the day inside the parenthesis.
