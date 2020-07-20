@@ -12,7 +12,7 @@ The values will be stored in the database in 1 column in json format. It is not 
 
 ## What it does not
 
-This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so much possibilities and therefore it will be very difficult to find a working solution.
+This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so much possibilities which will be very difficult to find a working solution.
 
 ### Sanitization and validation (server-side)
 
@@ -160,9 +160,7 @@ This method was inspired by Spatie/Openinghours (https://github.com/spatie/openi
 The following method returns an array with combined opening times for a week. You can use it to create your own render function for schema.org markup.
 
 ```
-$page->setOutputFormatting(false);
 print_r($page->fieldname->getjsonLDTimes());
-$page->setOutputFormatting(true);
 ```
 This returns an array as fe the following:
 
@@ -170,16 +168,15 @@ This returns an array as fe the following:
 Array ( [0] => Mo,Tu,We 08:00-12:00 [1] => Mo,Th 13:00-18:00 [2] => Th 08:00-11:00 )
 ```
 As you can see days with the same opening times will be combined and output in the value. You can use this array to create the markup by yourself (or you use the pre-defined render method afterwards).
-Be aware to set outputformatting to false before, because schema.org accepts only 24 hours format and no fe 08:00 AM or something like that. This must be language independent.
-
+The times are always in H:i format (independent of language settings), because Schema.org only accepts this format.
 
 ### Render methods
-The render methods return a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by yourself.
+The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.
 
 #### 1) Render all opening times
 
-This renders all opening times in an unordered list. You can set some options like ulclass, fulldayName timesseparator and timesuffix to change the markup a little bit.
-Render methods take care of the format configuration settings in the backend, because the will run through the formatValue() before output.
+This renders all opening times in an unordered list. You can set some options like ulclass, fulldayName and timesseparator to change the markup a little bit.
+Render methods take care of the format configuration settings in the backend.
 
 * ulclass: enter a class for the unordered list (default:none)
 * fulldayName: output the fullname (fe Monday) is set to true and the abbreviation (fe Mo) if set to false (default: false)
@@ -209,7 +206,7 @@ This renders all times in an unordered list:
 </ul>
 ```
 
-#### 2) Render only the opening time of one specific day.
+#### 2) Render only the opening of one specific day.
 
 * timeseparator: separator string between the different times per day (default: ,)
 
@@ -255,9 +252,7 @@ This renders all combined days with same times in an unordered list:
 #### Render method for JsonLD Schema.org markup
 
 ```
-$page->setOutputFormatting(false);
 echo $page->fieldname->renderjsonLDTimes();
-$page->setOutputFormatting(true);
 ```
 This method renders a string like this:
 
@@ -275,18 +270,18 @@ This string can be used in schema.org markup of Local business opening times lik
   ],
 .....
 ```
+The times are always in H:i format (independent of language settings), because Schema.org only accepts this format.
 You can find examples at https://schema.org/LocalBusiness
 
-Be aware to set outputformatting to false before, because schema.org accepts only 24 hours format and no fe 08:00 AM or something like that. This must be language independent.
 
 ### Multilanguage support
 All static texts are fully translateable (frontend and backend). The timeformat on the frontend can also be set for each language in the backend configuration of the inputfield (fe Default %R and English %r).
-This will only be taken into account if outputformatting is on (default).
+This will only be taken into account if outputformatting is not set to false (default is true).
 
 ### Field Settings
 
 You can select how many times are allowed on each day (minimum 1, maximum 10, default 2). In most cases you will need two times on each day: morning and afternoon.<br />
-You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend. 
+You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend.
 
 
 ### To do
