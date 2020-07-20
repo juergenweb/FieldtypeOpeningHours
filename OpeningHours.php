@@ -331,8 +331,65 @@ class OpeningHours extends WireData
     }
 
 
+    /**
+    * Method to create an array of combined opening hours for usage in json LD markup of schema.org
+    * Based on https://schema.org/openingHours
+    * @return array fe Array ( [0] => Mo,Tu,We 08:00-12:00 [1] => Mo,Th 13:00-18:00 [2] => Th 08:00-11:00 )
+    */
+    public function getjsonLDTimes(): array
+    {
+      $times = array_filter($this->times);
+      $temp_times = [];
+      foreach($times as $day => $times){
+        foreach($times as $num => $time){
+          $timeStr = array_filter($time);
+          $timeStr = implode('-', $timeStr);
+          $temp_times[$day.'-'.$num] = $timeStr;
+        }
+      }
+      $times = array_filter($temp_times);
+      $val   = array_unique(array_values($times));
+      foreach ($val As $v){
+        $dat[$v] = array_keys($times,$v);
+      }
+      $combined = [];
+      foreach($dat as $time=>$days){
+        $combined[$time] = implode(',',$days);
+      }
+      //manipulate values
+      array_walk($combined, function(&$value, &$key) {
+        $values = explode(',', $value);
+        $newValues = [];
+        foreach($values as $val){
+          $newValues[] = ucfirst(substr($val, 0,2));
+        }
+        $value = implode(',', $newValues);
+      });
+      $corr = [];
+      foreach($combined as $time=>$days){
+        $corr[] = $days.' '.$time;
+      }
+      return ($corr);
+    }
+
+    /**
+    * Method to render a string of combined opening hours for usage in json LD markup of schema.org
+    * Based on https://schema.org/openingHours
+    * @return string -> fe "Mo-Fr 10:00-19:00", "Mo-Di 21:00-23:00", "Sa 10:00-22:00", "Su 10:00-21:00"
+    */
+    public function renderjsonLDTimes(): string
+    {
+      $out = '';
+      $times = $this-> getjsonLDTimes();
+      array_walk($times, function(&$value, &$key) {
+        $value = '"'.$value.'"';
+      });
+      return implode(', ', $times);
+    }
+
     public function __toString()
     {
         return $this->render();
     }
+
 }
