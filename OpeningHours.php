@@ -164,12 +164,19 @@ class OpeningHours extends WireData
 
 
     /**
-    * Return all predefined PHP strftime() formats for use as times
-    * @return array
+    * Format a date with the given PHP date() or PHP strftime() format
+    *
+    * Note: this method moved to the WireDateTime class and is kept here for backwards compatibility.
+    *
+    * @param int $value Unix timestamp of date
+    * @param string $format date() or strftime() format string to use for formatting
+    * @return string Formatted date string
+    * @deprecated Use WireDateTime class instead
+    *
     */
-    static public function getStrftimeFormats(): array
-    {
-      return ['%H','%k','%I','%l','%M','%p','%P','%r','%R','%S','%T','%X','%z','%Z'];
+    static public function formatDate($value, $format) {
+      $wdt = new WireDateTime();
+      return $wdt->formatDate($value, $format);
     }
 
     /**
@@ -185,23 +192,7 @@ class OpeningHours extends WireData
             $dateTime = '10.10.2010 '.$time;
             $timeStamp = strtotime($dateTime); // virtual date/time string needed for manipulation
             $timeformat = $timeformat ? $timeformat : self::DEFAULTTIMEFORMAT;
-            if (strpos($timeformat, '%') !== false) {
-              if(strspn($timeformat, '%') == 1){
-                if(!in_array($timeformat, self::getStrftimeFormats())){
-                  $timeformat = self::DEFAULTTIMEFORMAT;
-                }
-                return strftime($timeformat, $timeStamp);
-              }
-              return '?';
-            } else {
-              $d = new \DateTime($dateTime);
-              //check if date format is correct -> otherwise set it back to a predefined default format
-              if(!in_array($timeformat, self::getTimeFormats())){
-                $timeformat = 'H:i'; //set it to a default format to prevent error messages
-              }
-              return $d->format($timeformat);
-
-            }
+            $time = OpeningHours::formatDate($timeStamp, $timeformat);
         }
         return $time;
     }
@@ -299,7 +290,7 @@ class OpeningHours extends WireData
     * @return string
     */
 
-    public function renderCombinedDays(array $options = []): string
+    public function renderCombinedDays(array $options = [])
     {
         $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'closedText' => $this->_('closed'), 'timesuffix' => ''];
         $options = array_merge($defaultOptions, $options);
