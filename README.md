@@ -10,6 +10,10 @@ This fieldtype let you enter various times per day in in an userfriendly UI. You
 The values will be stored in the database in 1 column in json format. It is not recommended to store multiple values in 1 column but in this case it is a possibility because we have an unknown number of times on each day.<br /><br />
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHoursDatabase.jpg?raw=true)
 
+## What it does not
+
+This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so much possibilities which will be very difficult to find a working solution.
+
 ### Sanitization and validation (server-side)
 
 A lot of sanitization validation will take place inside the processInput method to 'clean' user inputs:
@@ -152,6 +156,20 @@ This will output an array like this:
 ```
 This method was inspired by Spatie/Openinghours (https://github.com/spatie/opening-hours).
 
+#### 5) Get combined times for Schema.org JsonLD Markup (only 1 time)
+The following method returns an array with combined opening times for a week. You can use it to create your own render function for schema.org markup.
+
+```
+print_r($page->fieldname->getjsonLDTimes());
+```
+This returns an array as fe the following:
+
+```
+Array ( [0] => Mo,Tu,We 08:00-12:00 [1] => Mo,Th 13:00-18:00 [2] => Th 08:00-11:00 )
+```
+As you can see days with the same opening times will be combined and output in the value. You can use this array to create the markup by yourself (or you use the pre-defined render method afterwards).
+
+
 ### Render methods
 The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.
 
@@ -231,7 +249,30 @@ This renders all combined days with same times in an unordered list:
 </ul>
 ```
 
-### Multilanguage
+#### Render method for JsonLD Schema.org markup
+
+```
+echo $page->fieldname->renderjsonLDTimes();
+```
+This method renders a string like this:
+
+```
+"Mo,Tu,We 08:00-12:00", "Mo,Th 13:00-18:00", "Th 08:00-11:00"
+```
+
+This string can be used in schema.org markup of Local business opening times like this:
+```
+.....
+"openingHours": [
+    "Mo-Sa 11:00-14:30",
+    "Mo-Th 17:00-21:30",
+    "Fr-Sa 17:00-22:00"
+  ],
+.....
+```
+You can find examples at https://schema.org/LocalBusiness
+
+### Multilanguage support
 All static texts are fully translateable (frontend and backend). The timeformat on the frontend can also be set for each language in the backend configuration of the inputfield (fe Default %R and English %r).
 This will only be taken into account if outputformatting is not set to false (default is true).
 
