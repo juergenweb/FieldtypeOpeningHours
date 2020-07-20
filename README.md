@@ -12,7 +12,7 @@ The values will be stored in the database in 1 column in json format. It is not 
 
 ## What it does not
 
-This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so much possibilities which will be very difficult to find a working solution.
+This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so much possibilities and therefore it will be very difficult to find a working solution.
 
 ### Sanitization and validation (server-side)
 
