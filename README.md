@@ -174,12 +174,12 @@ Be aware to set outputformatting to false before, because schema.org accepts onl
 
 
 ### Render methods
-The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.
+The render methods return a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by yourself.
 
 #### 1) Render all opening times
 
-This renders all opening times in an unordered list. You can set some options like ulclass, fulldayName and timesseparator to change the markup a little bit.
-Render methods take care of the format configuration settings in the backend.
+This renders all opening times in an unordered list. You can set some options like ulclass, fulldayName timesseparator and timesuffix to change the markup a little bit.
+Render methods take care of the format configuration settings in the backend, because the will run through the formatValue() before output.
 
 * ulclass: enter a class for the unordered list (default:none)
 * fulldayName: output the fullname (fe Monday) is set to true and the abbreviation (fe Mo) if set to false (default: false)
@@ -209,7 +209,7 @@ This renders all times in an unordered list:
 </ul>
 ```
 
-#### 2) Render only the opening of one specific day.
+#### 2) Render only the opening time of one specific day.
 
 * timeseparator: separator string between the different times per day (default: ,)
 
@@ -281,12 +281,12 @@ Be aware to set outputformatting to false before, because schema.org accepts onl
 
 ### Multilanguage support
 All static texts are fully translateable (frontend and backend). The timeformat on the frontend can also be set for each language in the backend configuration of the inputfield (fe Default %R and English %r).
-This will only be taken into account if outputformatting is not set to false (default is true).
+This will only be taken into account if outputformatting is on (default).
 
 ### Field Settings
 
 You can select how many times are allowed on each day (minimum 1, maximum 10, default 2). In most cases you will need two times on each day: morning and afternoon.<br />
-You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend.
+You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend. 
 
 
 ### To do
