@@ -160,7 +160,9 @@ This method was inspired by Spatie/Openinghours (https://github.com/spatie/openi
 The following method returns an array with combined opening times for a week. You can use it to create your own render function for schema.org markup.
 
 ```
+$page->setOutputFormatting(false);
 print_r($page->fieldname->getjsonLDTimes());
+$page->setOutputFormatting(true);
 ```
 This returns an array as fe the following:
 
@@ -168,6 +170,7 @@ This returns an array as fe the following:
 Array ( [0] => Mo,Tu,We 08:00-12:00 [1] => Mo,Th 13:00-18:00 [2] => Th 08:00-11:00 )
 ```
 As you can see days with the same opening times will be combined and output in the value. You can use this array to create the markup by yourself (or you use the pre-defined render method afterwards).
+Be aware to set outputformatting to false before, because schema.org accepts only 24 hours format and no fe 08:00 AM or something like that. This must be language independent.
 
 
 ### Render methods
@@ -252,7 +255,9 @@ This renders all combined days with same times in an unordered list:
 #### Render method for JsonLD Schema.org markup
 
 ```
+$page->setOutputFormatting(false);
 echo $page->fieldname->renderjsonLDTimes();
+$page->setOutputFormatting(true);
 ```
 This method renders a string like this:
 
@@ -271,6 +276,8 @@ This string can be used in schema.org markup of Local business opening times lik
 .....
 ```
 You can find examples at https://schema.org/LocalBusiness
+
+Be aware to set outputformatting to false before, because schema.org accepts only 24 hours format and no fe 08:00 AM or something like that. This must be language independent.
 
 ### Multilanguage support
 All static texts are fully translateable (frontend and backend). The timeformat on the frontend can also be set for each language in the backend configuration of the inputfield (fe Default %R and English %r).
