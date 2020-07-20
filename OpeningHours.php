@@ -330,6 +330,7 @@ class OpeningHours extends WireData
     public function getjsonLDTimes(): array
     {
       $times = array_filter($this->get('times'));
+
       //convert times always to H:i format (fe 08:00), because Schema.org only accepts this format
       array_walk_recursive($times, function(&$value, &$key) {
         if(($key === 'start') || ($key === 'finish')){
@@ -347,7 +348,9 @@ class OpeningHours extends WireData
         }
       }
       $times = array_filter($temp_times);
+
       $val   = array_unique(array_values($times));
+      $dat = [];
       foreach ($val As $v){
         $dat[$v] = array_keys($times,$v);
       }
@@ -368,9 +371,7 @@ class OpeningHours extends WireData
       foreach($combined as $time=>$days){
         $corr[] = $days.' '.$time;
       }
-
-      return ($corr);
-
+      return $corr;
     }
 
     /**
