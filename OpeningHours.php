@@ -201,26 +201,30 @@ class OpeningHours extends WireData
     /**
     * Renders a string of opening times on a specific day
     * @param string $day
-    * @param string $separator
-    * @param string $timesuffix
+    * @param array $options
+    * timeseparator: separator between multiple times (default: ,)
+    * timesuffix: add text after timestring (default: '')
+    * showClosed: true/false show closed days or not (default: true)
     * @return string
     */
-    public function renderDay(string $day, string $separator = ', ', $timesuffix = '', bool $showCosed = true): string
+    public function renderDay(string $day, array $options = []): string
     {
+        $defaultOptions = ['timeseparator' => ', ', 'timesuffix' => '', 'showClosed' => true];
+        $options = array_merge($defaultOptions, $options);
         $getTimes = $this->times[$day];
         $times = [];
         $numberOfTimes = count($getTimes);
         if ($numberOfTimes > 1) { // multiple opening times per day
             foreach ($getTimes as $value) {
-                $times[] = $value['start'].' - '.$value['finish'].$timesuffix;
+                $times[] = $value['start'].' - '.$value['finish'].$options['timesuffix'];
             }
-            $out = implode($separator, $times);
+            $out = implode($options['timeseparator'], $times);
         } else { // single opening time or closed
             if (array_filter($getTimes[0])) {
-                $times[] = $getTimes[0]['start'].' - '.$getTimes[0]['finish'].$timesuffix;
+                $times[] = $getTimes[0]['start'].' - '.$getTimes[0]['finish'].$options['timesuffix'];
                 $out = implode('-', $times);
             } else {
-              $closed = ($showCosed) ? $this->_('closed') : '';
+              $closed = ($options['showClosed']) ? $this->_('closed') : '';
                 $out = $closed;
             }
         }
@@ -231,6 +235,11 @@ class OpeningHours extends WireData
     /**
     * Method to render all times per week in an unordered list
     * @param array $options
+    * ulclass: add a CSS class to the ul tag (default: '')
+    * fulldayName: show fullname (true) or dayname abbreviation (false) -> (default: false)
+    * timeseparator: separator between multiple times (default: ,)
+    * timesuffix: add text after timestring (default: '')
+    * showClosed: true/false show closed days or not (default: true)
     * @return string
     */
     public function render(array $options = []): string
@@ -242,10 +251,10 @@ class OpeningHours extends WireData
         $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
         $out .= '>';
         foreach (self::getWeekdays() as $day => $name) {
-          if($this->renderDay($day, $options['timeseparator'], $options['timesuffix'], $options['showClosed'])){
+          if($this->renderDay($day, ['timeseparator' => $options['timeseparator'], 'timesuffix' => $options['timesuffix'], 'showClosed' => $options['showClosed']])){
             $out .= '<li class="time day-'.$day.'">';
             $out .= $options['fulldayName'] ? $name[1] : $name[0];
-            $out .= ': '.$this->renderDay($day, $options['timeseparator'], $options['timesuffix'], $options['showClosed']);
+            $out .= ': '.$this->renderDay($day, ['timeseparator' => $options['timeseparator'], 'timesuffix' => $options['timesuffix'], 'showClosed' => $options['showClosed']]);
             $out .= '</li>';
           }
         }
