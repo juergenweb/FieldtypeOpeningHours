@@ -205,7 +205,7 @@ class OpeningHours extends WireData
     * @param string $timesuffix
     * @return string
     */
-    public function renderDay(string $day, string $separator = ', ', $timesuffix = ''): string
+    public function renderDay(string $day, string $separator = ', ', $timesuffix = '', bool $showCosed = true): string
     {
         $getTimes = $this->times[$day];
         $times = [];
@@ -220,7 +220,8 @@ class OpeningHours extends WireData
                 $times[] = $getTimes[0]['start'].' - '.$getTimes[0]['finish'].$timesuffix;
                 $out = implode('-', $times);
             } else {
-                $out = $this->_('closed');
+              $closed = ($showCosed) ? $this->_('closed') : '';
+                $out = $closed;
             }
         }
         return $out;
@@ -234,32 +235,54 @@ class OpeningHours extends WireData
     */
     public function render(array $options = []): string
     {
-        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'timesuffix' => ''];
+        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'timesuffix' => '', 'showClosed' => true];
         $options = array_merge($defaultOptions, $options);
         $out = '';
         $out .= '<ul';
         $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
         $out .= '>';
         foreach (self::getWeekdays() as $day => $name) {
+          if($this->renderDay($day, $options['timeseparator'], $options['timesuffix'], $options['showClosed'])){
             $out .= '<li class="time day-'.$day.'">';
             $out .= $options['fulldayName'] ? $name[1] : $name[0];
-            $out .= ': '.$this->renderDay($day, $options['timeseparator'], $options['timesuffix']);
+            $out .= ': '.$this->renderDay($day, $options['timeseparator'], $options['timesuffix'], $options['showClosed']);
             $out .= '</li>';
+          }
         }
         $out .= '</ul>';
         return $out;
     }
 
+    /**
+    * Method to remove empty array items from a multidimensional array
+    * @param array $input - the array which should be filtered
+    * @return array
+    */
+    static public function arrayFilterRecursive(array $input): array
+    {
+      foreach ($input as &$value){
+          if (is_array($value)){
+              $value = self::arrayFilterRecursive($value);
+          }
+      }
+      return array_filter($input);
+    }
+
 
     /**
     * Method to output a multidimens. array containing all days with same times combined
+    * @param bool $showClosed -> true: closed days will be displayed; false: closed days will not be displayed
     * @return array
     */
-    public function combinedDays(): array
+    public function combinedDays(bool $showClosed = true): array
     {
         $equalDays = [];
-        $allOpeningHours = $this->times;
-
+        if($showClosed){
+          $allOpeningHours = $this->times;
+        } else {
+          //remove all empty (closed) times
+          $allOpeningHours = self::arrayFilterRecursive($this->times);
+        }
         $uniqueOpeningHours = array_unique($allOpeningHours, SORT_REGULAR);
         $nonUniqueOpeningHours = $allOpeningHours;
 
@@ -287,18 +310,19 @@ class OpeningHours extends WireData
     * timeseparator : The sign between multiple opening times on the same day
     * closedText : What should be displayed if it is closed on that day
     * timesuffix: A text that should be displayed after the time
+    * showClosed: true => closed days will be displayed; false => closed days will be removed
     * @return string
     */
 
     public function renderCombinedDays(array $options = [])
     {
-        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'closedText' => $this->_('closed'), 'timesuffix' => ''];
+        $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'closedText' => $this->_('closed'), 'timesuffix' => '', 'showClosed' => true];
         $options = array_merge($defaultOptions, $options);
         $out = '';
         $out .= '<ul';
         $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
         $out .= '>';
-        foreach ($this->combinedDays() as $key => $arrays) {
+        foreach ($this->combinedDays($options['showClosed']) as $key => $arrays) {
             $out .= '<li>';
             $dayNames = [];
             foreach ($arrays['days'] as $key => $dayAbbr) {
