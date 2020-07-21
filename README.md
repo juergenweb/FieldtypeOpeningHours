@@ -154,6 +154,14 @@ This will output an array like this:
     )
 
 ```
+
+You can set an boolean value as an option wether to display closed days or not:
+
+```
+print_r($page->fieldname->combinedDays(false));
+```
+Adding false inside the parenthesis will remove days with no times from the array.
+
 This method was inspired by Spatie/Openinghours (https://github.com/spatie/opening-hours).
 
 #### 5) Get combined times for Schema.org JsonLD Markup (only 1 time)
@@ -182,16 +190,17 @@ Render methods take care of the format configuration settings in the backend.
 * fulldayName: output the fullname (fe Monday) is set to true and the abbreviation (fe Mo) if set to false (default: false)
 * timeseparator: separator string between the different times per day (default: ,)
 * timesuffix: A text that should be displayed after the time
+* showClosed: true: closed days will be displayed; false: closed days will not be displayed (default: true)
 
 ```
 echo $page->fieldname->render();
 
 or a little bit more advanced with some parameters
 
-echo $page->fieldname->render(['ulclass' => 'uk-list', 'fulldayName' => true, 'timeseparator' => '; ', 'timesuffix' = ' h']);
+echo $page->fieldname->render(['ulclass' => 'uk-list', 'fulldayName' => true, 'timeseparator' => '; ', 'timesuffix' = ' h', 'showClosed' => false]);
 ```
 
-This renders all times in an unordered list:
+This renders all times in an unordered list (depending on your settings):
 
 ```
 <ul class="uk-list">
@@ -206,18 +215,20 @@ This renders all times in an unordered list:
 </ul>
 ```
 
-#### 2) Render only the opening of one specific day.
+#### 2) Render only the opening times of one specific day.
 
 * timeseparator: separator string between the different times per day (default: ,)
+* $timesuffix: show some text or markup after the timestring (default: '')
+* $showCosed = show(true) or hide (false) days with no opening times (default: true)
 
 ```
 echo $page->fieldname->renderDay('mo');
 
 or more advanced with a timeseparator parameter
 
-echo $page->openinghours->renderDay('mo', '; ');
+echo $page->openinghours->renderDay('mo', '; ', false);
 ```
-This leads to the following output:
+This leads fe to the following output:
 
 ```
 08:00-12:00; 14:00-18:00
