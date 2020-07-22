@@ -3,7 +3,6 @@ namespace ProcessWire;
 
 class InputfieldOpeningHours extends Inputfield
 {
-
     public function __construct()
     {
         include_once(__DIR__ . '/OpeningHours.php');
@@ -42,14 +41,19 @@ class InputfieldOpeningHours extends Inputfield
         //Add CSS and JS files for this inputfield
         $this->config->styles->add(config()->urls->{$this->className} . 'openinghours.css?v='.$version);
         $this->config->scripts->add(config()->urls->{$this->className} . 'openinghours.js?v='.$version);
-        if($this->languages) foreach($this->languages as $language) {
-    			/** @var Language $language */
-    			// account for alternate formats in other languages
-    			if($language->isDefault()) continue;
-    			$this->set("timeformat$language", '');
-    		}
+        if ($this->languages) {
+            foreach ($this->languages as $language) {
+                /** @var Language $language */
+                // account for alternate formats in other languages
+                if ($language->isDefault()) {
+                    continue;
+                }
+                $this->set("timeformat$language", '');
+            }
+        }
         return parent::init();
     }
+
 
     /**
     * Method to render the inputfields in the backend
@@ -142,59 +146,59 @@ class InputfieldOpeningHours extends Inputfield
     */
     public function sanitizeValidateValues(array $times, string $fieldName): array
     {
-      $sanitizedValues = [];
-      foreach(OpeningHours::getWeekdays() as $key=>$value){ //key = mo,tu,.. value = ['Mo' => 'Monday']
-        //$value = [$value[0] => $value[1]];
-        $value = [$key=> $value[1]];
-        foreach ($value as $dayAbbr=>$dayName) {
-          $timeValues = [];
-            foreach ($times as $key=>$timesArray) { //key = mo,tu,.. value = multidimes. array of times on this day
-              //check for max times/day and remove all times which are above the limit
-              $timesArray = array_slice($timesArray, 0, $this->numberOftimes);
-                foreach($timesArray as $pos=>$timePair){
-                  $numberOfValues = count(array_filter($timePair));
-                  // set all incomplete values (only start or end time was entered) to completely empty
-                  if($numberOfValues === 1) {
-                    //set both values to empty and add it back to the array
-                    $timePair = ['start' => '' , 'finish' => ''];
-                    $this->warning($this->_('Incomplete time with only a start or endtime was removed.'));
-                  }
-                  if((count($timePair) === 0)){
-                    $timePair = false;
-                  }
-                  if($dayAbbr == $key){
-                    if((count(array_filter($timePair)) === 2) || ($pos === 0)){
-                      if(count(array_filter($timePair)) === 2){
-                        if($timePair['start'] == $timePair['finish']){
-                          $this->error(sprintf($this->_('On %s start and end time is equal.Please set different times.'), $dayName.' (#'.($pos + 1).')'));
+        $sanitizedValues = [];
+        foreach (OpeningHours::getWeekdays() as $key=>$value) { //key = mo,tu,.. value = ['Mo' => 'Monday']
+            //$value = [$value[0] => $value[1]];
+            $value = [$key=> $value[1]];
+            foreach ($value as $dayAbbr=>$dayName) {
+                $timeValues = [];
+                foreach ($times as $key=>$timesArray) { //key = mo,tu,.. value = multidimes. array of times on this day
+                    //check for max times/day and remove all times which are above the limit
+                    $timesArray = array_slice($timesArray, 0, $this->numberOftimes);
+                    foreach ($timesArray as $pos=>$timePair) {
+                        $numberOfValues = count(array_filter($timePair));
+                        // set all incomplete values (only start or end time was entered) to completely empty
+                        if ($numberOfValues === 1) {
+                            //set both values to empty and add it back to the array
+                            $timePair = ['start' => '' , 'finish' => ''];
+                            $this->warning($this->_('Incomplete time with only a start or endtime was removed.'));
                         }
-                        if($timePair['start'] > $timePair['finish']){
-                          $this->warning(sprintf($this->_('On %s start time is after end time. If end time is on the next day it would be ok.'), $dayName.' (#'.($pos + 1).')'));
+                        if ((count($timePair) === 0)) {
+                            $timePair = false;
                         }
-                      }
-                      $timeValues[$dayAbbr][] = $timePair;
+                        if ($dayAbbr == $key) {
+                            if ((count(array_filter($timePair)) === 2) || ($pos === 0)) {
+                                if (count(array_filter($timePair)) === 2) {
+                                    if ($timePair['start'] == $timePair['finish']) {
+                                        $this->error(sprintf($this->_('On %s start and end time is equal.Please set different times.'), $dayName.' (#'.($pos + 1).')'));
+                                    }
+                                    if ($timePair['start'] > $timePair['finish']) {
+                                        $this->warning(sprintf($this->_('On %s start time is after end time. If end time is on the next day it would be ok.'), $dayName.' (#'.($pos + 1).')'));
+                                    }
+                                }
+                                $timeValues[$dayAbbr][] = $timePair;
+                            }
+                        }
                     }
-                  }
+                }
+                //remove the first empty array of multi times array (if present)
+                $numberOfTimes = count($timeValues[$dayAbbr]);
+                if ($numberOfTimes > 1) {
+                    if (count(array_filter($timeValues[$dayAbbr][0])) === 0) { //first item is empty - lets remove it
+                        unset($timeValues[$dayAbbr][0]);
+                    }
+                    $unique = array_unique($timeValues[$dayAbbr], SORT_REGULAR);
+
+                    $keys = array_column($unique, 'start');
+                    array_multisort($keys, SORT_ASC, $unique);
+
+                    $sanitizedValues[$dayAbbr] = $unique;
+                } else {
+                    $sanitizedValues[$dayAbbr] = $timeValues[$dayAbbr];
                 }
             }
-            //remove the first empty array of multi times array (if present)
-            $numberOfTimes = count($timeValues[$dayAbbr]);
-            if($numberOfTimes > 1) {
-              if(count(array_filter($timeValues[$dayAbbr][0])) === 0){ //first item is empty - lets remove it
-                unset($timeValues[$dayAbbr][0]);
-              }
-              $unique = array_unique($timeValues[$dayAbbr], SORT_REGULAR);
-
-              $keys = array_column($unique, 'start');
-              array_multisort($keys, SORT_ASC, $unique);
-
-              $sanitizedValues[$dayAbbr] = $unique;
-            } else {
-              $sanitizedValues[$dayAbbr] = $timeValues[$dayAbbr];
-            }
         }
-      }
-      return $sanitizedValues;
+        return $sanitizedValues;
     }
 
 
@@ -219,33 +223,31 @@ class InputfieldOpeningHours extends Inputfield
             }
         }
 
-
         // 1) check if all days are present with at least 1 start and 1 end time - if not add it to the array with index 0
-        foreach(OpeningHours::getWeekdays() as $key => $days){
-          foreach(['start', 'finish'] as $time){
-            if(!array_key_exists($name.'-'.$key.'-0-'.$time, $timeInputs)){
-              $timeInputs[$name.'-'.$key.'-0-'.$time] = '';
+        foreach (OpeningHours::getWeekdays() as $key => $days) {
+            foreach (['start', 'finish'] as $time) {
+                if (!array_key_exists($name.'-'.$key.'-0-'.$time, $timeInputs)) {
+                    $timeInputs[$name.'-'.$key.'-0-'.$time] = '';
+                }
             }
-          }
         }
-
 
         // 2) Set inputs as a string and check if it is in a valid time format(H:i) - otherwise get rid of them
         $cleanedValues = [];
-        foreach($timeInputs as $key=>$value){
-          $value = strval($value);
-          if($value){
-            //check if value has valid time format (fe 08:00)
-            if(OpeningHours::isTimeValid($value)){
-              $cleanedValues[$key] = $value;
+        foreach ($timeInputs as $key=>$value) {
+            $value = strval($value);
+            if ($value) {
+                //check if value has valid time format (fe 08:00)
+                if (OpeningHours::isTimeValid($value)) {
+                    $cleanedValues[$key] = $value;
+                } else {
+                    $cleanedValues[$key] = '';
+                    $this->error($this->_('A value was not a valid time string so it was deleted.'));
+                }
             } else {
-              $cleanedValues[$key] = '';
-              $this->error($this->_('A value was not a valid time string so it was deleted.'));
+                //empty value
+                $cleanedValues[$key] = '';
             }
-          } else {
-            //empty value
-            $cleanedValues[$key] = '';
-          }
         }
 
         // 3) create multidimensional array from onedimensional POST array -> needed for sanitization and validation on per days base afterwards
@@ -314,13 +316,15 @@ class InputfieldOpeningHours extends Inputfield
         $f->initValue = '%R';//default value
         $f->inputType = 'text';
         $f->attr('value', $this->timeformat ? $this->timeformat : '%R');
-        if($languages) {
-    			$f->useLanguages = true;
-    			foreach($languages as $language) {
-    				if($language->isDefault()) continue;
-    				$f->set("value$language", (string) $this->get("timeformat$language"));
-    			}
-    		}
+        if ($languages) {
+            $f->useLanguages = true;
+            foreach ($languages as $language) {
+                if ($language->isDefault()) {
+                    continue;
+                }
+                $f->set("value$language", (string) $this->get("timeformat$language"));
+            }
+        }
         $f->description = $this->_('Please enter the time format in which the times should be displayed on the frontend. Use date() or sprintf() syntax.');
         $f->notes = sprintf($this->_('For example a timeformat of %s shows the time as 08:00, a timeformat of %s will be rendered as 08:00 AM. You can find more examples at %s or %s.'), '%R', '%r', '[https://www.php.net/manual/de/function.strftime.php](https://www.php.net/manual/de/function.strftime.php)', '[https://www.php.net/manual/de/function.date.php](https://www.php.net/manual/de/function.date.php)');
         $f->columnWidth = 100;
