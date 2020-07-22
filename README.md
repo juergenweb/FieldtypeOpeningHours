@@ -5,25 +5,25 @@ Each day can have multiple times (max. 10) or nothing at all.<br />
 
 ## What it does
 
-This fieldtype let you enter various times per day in in an userfriendly UI. You can add more times by clicking an add button. The new input will be built dynamically via JQuery. The status (open/closed) can be set via a toggle switch.<br /><br />
+This fieldtype let you enter various times per day in an userfriendly UI. You can add more times by clicking an add button. The new input will be built dynamically via JQuery. The status (open/closed) can be set via a toggle switch.<br /><br />
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHours.jpg?raw=true)<br />
 The values will be stored in the database in 1 column in json format. It is not recommended to store multiple values in 1 column but in this case it is a possibility because we have an unknown number of times on each day.<br /><br />
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/OpeningHoursDatabase.jpg?raw=true)
 
 ## What it does not
 
-This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so much possibilities which will be very difficult to find a working solution.
+This inputfield does not take account on exceptions. To take account of exceptions is very difficult because you have to handle different durations (days, weeks, moths) and you have to handle recurrences too (fe every first Monday on each month, every year,...). So there are so many possibilities which will be very difficult to find a working solution.
 
 ### Sanitization and validation (server-side)
 
 A lot of sanitization validation will take place inside the processInput method to 'clean' user inputs:
 
-- duplicate times on one day will be removed - only one entry remains of each kind per day (doesnt make sense to have same times on one day)
+- duplicate times on one day will be removed - only one entry remains of each kind per day (doesn't make sense to have same times on one day)
 - multiple empty times (empty inputs) will be removed. This can result from clicking the add button multiple times to create new inputs and do not enter any values.
 - incomplete times (only start or end time) will be removed - every opening time must have a start and end time, otherwise they are invalid.
-- inputs which are not a string and/or not in a valid timeformat will be deleted.
+- inputs which are not a string and/or not in a valid time format will be deleted.
 - re-ordering of multiple times on each day by sorting the start times (fe first time is 14:00 - 18:00 and second time is 07:00 - 12:00, then the second one will be the first one after ascending re-ordering).
-- checking if start time is equal end time (if yes then an error message will be shown, because this doesnt make sense)
+- checking if start time is equal end time (if yes then an error message will be shown, because this doesn't make sense)
 - checking if start time is before end time (if not then a warning message will be shown. Could only be valid if end time is on the next day - fe: 20:00 - 03:00).
 - if the max. number of times per day (configured in the backend) is reached, then all times after that will be removed. Fe. a user enters 4 times on one day and only 3 times are allowed, then the last time will be removed automatically. The max number of times will be controlled by Jquery on the frontend too and let the user only enter the max number of times.  
 
@@ -33,7 +33,7 @@ There are several methods to output the times in templates.
 The following methods return the results as (multidimensional) arrays. You can use these arrays to create the markup by yourself.
 
 ### Array methods
-The array methods doesnt render any markup. They output an array of values which can be displayed fe via foreach loops inside the templates.
+The array methods doesn't render any markup. They output an array of values which can be displayed fe via foreach loops inside the templates.
 These methods provide raw data for personal markup creation.
 
 #### 1) Get all times a week
@@ -41,7 +41,7 @@ These methods provide raw data for personal markup creation.
 ```
 print_r($page->fieldname->times);
 ```
-The call will always output all times for each day of the week (including holiday) as an multidimensional assoc. array.
+The call will always output all times for each day of the week (including holiday) as a multidimensional assoc. array.
 
 ```
 [mo] => Array (
@@ -75,26 +75,26 @@ The call will always output all times for each day of the week (including holida
 If a day has no times (like ho in this example) means that the company is closed on that day.
 
 #### 2) Get all times a week without output formatting
-If you need the values as stored in the database without output formatting, you have to prevent output formatting by setting it to false. This prevent the formatValue() method to change the times to the format you have set in the backend.
+If you need the values as stored in the database without output formatting, you have to prevent output formatting by setting it to false. This prevents the formatValue() method to change the times to the format you have set in the backend.
 
 ```
 $page->setOutputFormatting(false);
 print_r($page->fieldname->times);
 $page->setOutputFormatting(true);
 ```
-Be aware to not forget to set output formatting to true afterwards.
+Don't forget to set output formatting to true afterwards.
 
 #### 3) Get the opening times on a specific day<br />
-You can use the following day abbreviation to select the specific day:<br />
-mo,tu,we,th,fr,sa,su,ho. ho stands for holiday in this case.<br />
-If you want fe all opening times for Monday you will use the following method and set as paramater the day inside the parenthesis.
+You can use the day abbreviation as an array key to get the times on a specific day:<br />
+Abbreviations that can be used: mo,tu,we,th,fr,sa,su,ho. ho stands for holiday in this case.<br />
 
+Example to get all times on Monday:
 
 ```
 print_r($page->fieldname->times['mo']);
 ```
 
-This will output all opening times of Monday in the following array:
+This will output all opening times on Monday as an array:
 
 ```
 [0] => Array (
@@ -103,12 +103,12 @@ This will output all opening times of Monday in the following array:
     )
 ```
 
-As you can see we will always output an array, because we can have multiple times on each day.<br />
-You can use this array to create the markup by yourself, so you are completely independent.
+As you can see in the exmaple output above we will always get an array. This is because we can have multiple times on each day (not only one as in this example).<br />
+You can use this array on the frontend to create the markup by yourself, so you are completely independent.
 
 
 #### 4) Get combined days with same opening hours.<br />
-Sometimes we have same opening hours on different days. With this method you can combine them and output an array.
+Sometimes we have same opening hours on different days. With this method you can combine and output them as an array.
 
 ```
 print_r($page->fieldname->combinedDays());
@@ -155,52 +155,56 @@ This will output an array like this:
 
 ```
 
-You can set an boolean value as an option wether to display closed days or not:
+You can set an boolean value as parameter wether to display closed days or not:
 
 ```
 print_r($page->fieldname->combinedDays(false));
 ```
-Adding false inside the parenthesis will remove days with no times from the array.
+Adding false inside the parenthesis will remove days with no times from the array (default ist true to show all times)
 
 This method was inspired by Spatie/Openinghours (https://github.com/spatie/opening-hours).
 
-#### 5) Get combined times for Schema.org JsonLD Markup (only 1 time)
+#### 5) Get combined times for Schema.org JsonLD Markup
 The following method returns an array with combined opening times for a week. You can use it to create your own render function for schema.org markup.
 
 ```
 print_r($page->fieldname->getjsonLDTimes());
 ```
-This returns an array as fe the following:
+This returns an array of combined days with same hours
 
 ```
 Array ( [0] => Mo,Tu,We 08:00-12:00 [1] => Mo,Th 13:00-18:00 [2] => Th 08:00-11:00 )
 ```
-As you can see days with the same opening times will be combined and output in the value. You can use this array to create the markup by yourself (or you use the pre-defined render method afterwards).
-The times are always in H:i format (independent of language settings), because Schema.org only accepts this format.
+As you can see days with the same opening times will be combined. You can use this array to create the markup by yourself.<br />
+The times are always in H:i format (independent of language settings), because Schema.org only accepts this format. So keep this in mind if you are running a multilingual site.
 
 ### Render methods
-The render methods returns a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.
+The render methods return a string for direct output in the templates. You can use these methods if they satisfy your needs. If you want to customize your markup it will be better to use the array methods above and create the markup by your own.<br />
+By the way: The render methods have also some parameter settings to influence the output.
 
 #### 1) Render all opening times
 
-This renders all opening times in an unordered list. You can set some options like ulclass, fulldayName and timesseparator to change the markup a little bit.
-Render methods take care of the format configuration settings in the backend.
+This renders all opening times in an unordered list. You can set some options (ulclass, fulldayName, timesseparator, timesuffix, showClosed)  to change the markup a little bit.
+
+Explanation of the settings parameter:
 
 * ulclass: enter a class for the unordered list (default:none)
-* fulldayName: output the fullname (fe Monday) is set to true and the abbreviation (fe Mo) if set to false (default: false)
+* fulldayName: output the full name (fe Monday) is set to true and the abbreviation (fe Mo) if set to false (default: false)
 * timeseparator: separator string between the different times per day (default: ,)
-* timesuffix: A text that should be displayed after the time
+* timesuffix: A text that should be displayed after the time (default: none)
 * showClosed: true: closed days will be displayed; false: closed days will not be displayed (default: true)
+
+Please use the parameters as an array (see example below) inside the parenthesis.
 
 ```
 echo $page->fieldname->render();
 
-or a little bit more advanced with some parameters
+or a little bit more advanced with some parameters as explained above
 
 echo $page->fieldname->render(['ulclass' => 'uk-list', 'fulldayName' => true, 'timeseparator' => '; ', 'timesuffix' = ' h', 'showClosed' => false]);
 ```
 
-This renders all times in an unordered list (depending on your settings):
+This renders all times in an unordered list:
 
 ```
 <ul class="uk-list">
@@ -217,16 +221,18 @@ This renders all times in an unordered list (depending on your settings):
 
 #### 2) Render only the opening times of one specific day.
 
+Available parameters:
+
 * timeseparator: separator string between the different times per day (default: ,)
-* $timesuffix: show some text or markup after the timestring (default: '')
+* $timesuffix: show some text or markup after the time string (default: none)
 * $showCosed = show(true) or hide (false) days with no opening times (default: true)
 
 ```
 echo $page->fieldname->renderDay('mo');
 
-or more advanced with a timeseparator parameter
+or more advanced with parameters
 
-echo $page->openinghours->renderDay('mo', '; ', false);
+echo $page->fieldname->renderDay('mo', '; ', false);
 ```
 This leads fe to the following output:
 
@@ -234,10 +240,11 @@ This leads fe to the following output:
 08:00-12:00; 14:00-18:00
 ```
 #### 3) Render combined days with same opening times.
+
 You can set the following parameters inside an options-array to manipulate the output:
 
 * ulclass: enter a class for the unordered list (default:none)
-* fulldayName: output the fullname (fe Monday) is set to true or the abbreviation (fe Mo) if set to false (default: false)
+* fulldayName: output the full name (fe Monday) is set to true or the abbreviation (fe Mo) if set to false (default: false)
 * timeseparator: separator string between the different times per day (default: ,)
 * closedText: Text (or other markup) that should be displayed if it is closed on that day (default: closed)
 * timesuffix: A text that should be displayed after the time
@@ -282,17 +289,17 @@ This string can be used in schema.org markup of Local business opening times lik
 .....
 ```
 The times are always in H:i format (independent of language settings), because Schema.org only accepts this format.
-You can find examples at https://schema.org/LocalBusiness
+You can find examples of how to create opening hours as structured data at https://schema.org/LocalBusiness
 
 
 ### Multilanguage support
-All static texts are fully translateable (frontend and backend). The timeformat on the frontend can also be set for each language in the backend configuration of the inputfield (fe Default %R and English %r).
-This will only be taken into account if outputformatting is not set to false (default is true).
+All static texts are fully translatable (frontend and backend). The time format on the frontend can also be set for each language in the backend configuration of the inputfield (fe default is %R and English is %r).
+This will only be taken into account if output formatting is not set to false (default is true).
 
 ### Field Settings
 
 You can select how many times are allowed on each day (minimum 1, maximum 10, default 2). In most cases you will need two times on each day: morning and afternoon.<br />
-You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend.
+You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend. The format of the time can be set in date() and strftime() format.
 
 
 ### To do
