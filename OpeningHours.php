@@ -7,14 +7,12 @@ namespace ProcessWire;
 
 class OpeningHours extends WireData
 {
-
     const DEFAULTTIMEFORMAT = '%R';
 
     public function __construct()
     {
         //set default values
         parent::__construct();
-
         try {
             $this->set('times', json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true));
             $this->set('timeformat', self::DEFAULTTIMEFORMAT);
@@ -59,6 +57,7 @@ class OpeningHours extends WireData
         ];
     }
 
+
     /**
     * Method to return only the lowercase day abbreviations in an array (['mo','tu',....])
     * @return array
@@ -66,8 +65,8 @@ class OpeningHours extends WireData
     public static function getDayAbbreviations(): array
     {
         $days = [];
-        foreach(self::getWeekdays() as $k=>$v){
-          $days[] = $v;
+        foreach (self::getWeekdays() as $k=>$v) {
+            $days[] = $v;
         }
         return $days;
     }
@@ -157,9 +156,9 @@ class OpeningHours extends WireData
    * @return array
    *
    */
-    static public function getTimeFormats(): array
+    public static function getTimeFormats(): array
     {
-      return WireDateTime::_getTimeFormats();
+        return WireDateTime::_getTimeFormats();
     }
 
 
@@ -174,10 +173,12 @@ class OpeningHours extends WireData
     * @deprecated Use WireDateTime class instead
     *
     */
-    static public function formatDate($value, $format) {
-      $wdt = new WireDateTime();
-      return $wdt->formatDate($value, $format);
+    public static function formatDate($value, $format)
+    {
+        $wdt = new WireDateTime();
+        return $wdt->formatDate($value, $format);
     }
+
 
     /**
     * Format a time value according to the format settings in the field configuration
@@ -189,8 +190,7 @@ class OpeningHours extends WireData
     public static function formatTimestring($time, $timeformat): string
     {
         if ($time) {
-            $dateTime = '10.10.2010 '.$time;
-            $timeStamp = strtotime($dateTime); // virtual date/time string needed for manipulation
+            $timeStamp = wire('sanitizer')->date('10.10.2010 '.$time);
             $timeformat = $timeformat ? $timeformat : self::DEFAULTTIMEFORMAT;
             $time = OpeningHours::formatDate($timeStamp, $timeformat);
         }
@@ -224,7 +224,7 @@ class OpeningHours extends WireData
                 $times[] = $getTimes[0]['start'].' - '.$getTimes[0]['finish'].$options['timesuffix'];
                 $out = implode('-', $times);
             } else {
-              $closed = ($options['showClosed']) ? $this->_('closed') : '';
+                $closed = ($options['showClosed']) ? $this->_('closed') : '';
                 $out = $closed;
             }
         }
@@ -251,30 +251,15 @@ class OpeningHours extends WireData
         $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
         $out .= '>';
         foreach (self::getWeekdays() as $day => $name) {
-          if($this->renderDay($day, ['timeseparator' => $options['timeseparator'], 'timesuffix' => $options['timesuffix'], 'showClosed' => $options['showClosed']])){
-            $out .= '<li class="time day-'.$day.'">';
-            $out .= $options['fulldayName'] ? $name[1] : $name[0];
-            $out .= ': '.$this->renderDay($day, ['timeseparator' => $options['timeseparator'], 'timesuffix' => $options['timesuffix'], 'showClosed' => $options['showClosed']]);
-            $out .= '</li>';
-          }
+            if ($this->renderDay($day, ['timeseparator' => $options['timeseparator'], 'timesuffix' => $options['timesuffix'], 'showClosed' => $options['showClosed']])) {
+                $out .= '<li class="time day-'.$day.'">';
+                $out .= $options['fulldayName'] ? $name[1] : $name[0];
+                $out .= ': '.$this->renderDay($day, ['timeseparator' => $options['timeseparator'], 'timesuffix' => $options['timesuffix'], 'showClosed' => $options['showClosed']]);
+                $out .= '</li>';
+            }
         }
         $out .= '</ul>';
         return $out;
-    }
-
-    /**
-    * Method to remove empty array items from a multidimensional array
-    * @param array $input - the array which should be filtered
-    * @return array
-    */
-    static public function arrayFilterRecursive(array $input): array
-    {
-      foreach ($input as &$value){
-          if (is_array($value)){
-              $value = self::arrayFilterRecursive($value);
-          }
-      }
-      return array_filter($input);
     }
 
 
@@ -286,11 +271,12 @@ class OpeningHours extends WireData
     public function combinedDays(bool $showClosed = true): array
     {
         $equalDays = [];
-        if($showClosed){
-          $allOpeningHours = $this->times;
+        if ($showClosed) {
+            $allOpeningHours = $this->times;
         } else {
-          //remove all empty (closed) times
-          $allOpeningHours = self::arrayFilterRecursive($this->times);
+            //remove all empty (closed) times
+            $allOpeningHours = wire('sanitizer')->minArray($this->times);
+            //$allOpeningHours = self::arrayFilterRecursive($this->times);
         }
         $uniqueOpeningHours = array_unique($allOpeningHours, SORT_REGULAR);
         $nonUniqueOpeningHours = $allOpeningHours;
@@ -307,9 +293,9 @@ class OpeningHours extends WireData
                 }
             }
         }
-
         return $equalDays;
     }
+
 
     /**
     * Method to render combined opening times as an unordered list
@@ -322,7 +308,6 @@ class OpeningHours extends WireData
     * showClosed: true => closed days will be displayed; false => closed days will be removed
     * @return string
     */
-
     public function renderCombinedDays(array $options = [])
     {
         $defaultOptions =  ['ulclass' => '', 'fulldayName' => false, 'timeseparator' => ', ', 'closedText' => $this->_('closed'), 'timesuffix' => '', 'showClosed' => true];
@@ -362,50 +347,51 @@ class OpeningHours extends WireData
     */
     public function getjsonLDTimes(): array
     {
-      $times = array_filter($this->get('times'));
+        $times = array_filter($this->get('times'));
 
-      //convert times always to H:i format (fe 08:00), because Schema.org only accepts this format
-      array_walk_recursive($times, function(&$value, &$key) {
-        if(($key === 'start') || ($key === 'finish')){
-          if($value){
-            $value = OpeningHours::formatTimestring($value, 'H:i');
-          }
+        //convert times always to H:i format (fe 08:00), because Schema.org only accepts this format
+        array_walk_recursive($times, function (&$value, &$key) {
+            if (($key === 'start') || ($key === 'finish')) {
+                if ($value) {
+                    $value = OpeningHours::formatTimestring($value, 'H:i');
+                }
+            }
+        });
+        $temp_times = [];
+        foreach ($times as $day => $times) {
+            foreach ($times as $num => $time) {
+                $timeStr = array_filter($time);
+                $timeStr = implode('-', $timeStr);
+                $temp_times[$day.'-'.$num] = $timeStr;
+            }
         }
-      });
-      $temp_times = [];
-      foreach($times as $day => $times){
-        foreach($times as $num => $time){
-          $timeStr = array_filter($time);
-          $timeStr = implode('-', $timeStr);
-          $temp_times[$day.'-'.$num] = $timeStr;
-        }
-      }
-      $times = array_filter($temp_times);
+        $times = array_filter($temp_times);
 
-      $val   = array_unique(array_values($times));
-      $dat = [];
-      foreach ($val As $v){
-        $dat[$v] = array_keys($times,$v);
-      }
-      $combined = [];
-      foreach($dat as $time=>$days){
-        $combined[$time] = implode(',',$days);
-      }
-      //manipulate values
-      array_walk($combined, function(&$value, &$key) {
-        $values = explode(',', $value);
-        $newValues = [];
-        foreach($values as $val){
-          $newValues[] = ucfirst(substr($val, 0,2));
+        $val   = array_unique(array_values($times));
+        $dat = [];
+        foreach ($val as $v) {
+            $dat[$v] = array_keys($times, $v);
         }
-        $value = implode(',', $newValues);
-      });
-      $corr = [];
-      foreach($combined as $time=>$days){
-        $corr[] = $days.' '.$time;
-      }
-      return $corr;
+        $combined = [];
+        foreach ($dat as $time=>$days) {
+            $combined[$time] = implode(',', $days);
+        }
+        //manipulate values
+        array_walk($combined, function (&$value, &$key) {
+            $values = explode(',', $value);
+            $newValues = [];
+            foreach ($values as $val) {
+                $newValues[] = ucfirst(substr($val, 0, 2));
+            }
+            $value = implode(',', $newValues);
+        });
+        $corr = [];
+        foreach ($combined as $time=>$days) {
+            $corr[] = $days.' '.$time;
+        }
+        return $corr;
     }
+
 
     /**
     * Method to render a string of combined opening hours for usage in json LD markup of schema.org
@@ -414,17 +400,16 @@ class OpeningHours extends WireData
     */
     public function renderjsonLDTimes(): string
     {
-      $out = '';
-      $times = $this-> getjsonLDTimes();
-      array_walk($times, function(&$value, &$key) {
-        $value = '"'.$value.'"';
-      });
-      return implode(', ', $times);
+        $out = '';
+        $times = $this-> getjsonLDTimes();
+        array_walk($times, function (&$value, &$key) {
+            $value = '"'.$value.'"';
+        });
+        return implode(', ', $times);
     }
 
     public function __toString()
     {
         return $this->render();
     }
-
 }
