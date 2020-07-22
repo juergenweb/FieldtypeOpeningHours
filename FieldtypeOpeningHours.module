@@ -31,11 +31,6 @@ class FieldtypeOpeningHours extends Fieldtype
         );
     }
 
-    public function init()
-    {
-        parent::init();
-    }
-
 
     /**
      * @param \ProcessWire\Page $page
@@ -104,32 +99,34 @@ class FieldtypeOpeningHours extends Fieldtype
         return $times;
     }
 
-
+    /**
+    * Method to format the time for each language according to the settings in the configuation of the inputfield
+    * @param \ProcessWire\Page $page
+    * @param \ProcessWire\Field $field
+    * @param $value
+    * @return mixed|string
+    */
     public function formatValue(Page $page, Field $field, $value)
     {
-      $times = $value;
-      if($times){
-        $userLang = wire('user')->language->id;
-        foreach(wire('languages') as $language) {
-          if($language->isDefault()){
-            $this->timeformat =  $field->timeformat;
-          } else if($language->id == $userLang){
-            $this->timeformat = $field->get("timeformat$userLang");
-          }
-
-            //print_r($this->get("timeformat$language"));
-          //$this->timeformat =  $field->timeformat; // get timformat from inputfield configuration settings;
-        }
-        //$this->timeformat =  $field->timeformat; // get timformat from inputfield configuration settings;
-        array_walk_recursive($times, function(&$value, &$key) {
-          if(($key === 'start') || ($key === 'finish')){
-            if($value){
-              $value = OpeningHours::formatTimestring($value, $this->timeformat);
+        $times = $value;
+        if ($times) {
+            $userLang = wire('user')->language->id;
+            foreach (wire('languages') as $language) {
+                if ($language->isDefault()) {
+                    $this->timeformat =  $field->timeformat;
+                } elseif ($language->id == $userLang) {
+                    $this->timeformat = $field->get("timeformat$userLang");
+                }
             }
-          }
-        });
-        return $times;
-      }
+            array_walk_recursive($times, function (&$value, &$key) {
+                if (($key === 'start') || ($key === 'finish')) {
+                    if ($value) {
+                        $value = OpeningHours::formatTimestring($value, $this->timeformat);
+                    }
+                }
+            });
+            return $times;
+        }
     }
 
 
