@@ -110,13 +110,16 @@ class FieldtypeOpeningHours extends Fieldtype
     {
         $times = $value;
         if ($times) {
-            $userLang = wire('user')->language->id;
-            foreach (wire('languages') as $language) {
-                if ($language->isDefault()) {
-                    $this->timeformat =  $field->timeformat;
-                } elseif ($language->id == $userLang) {
-                    $this->timeformat = $field->get("timeformat$userLang");
-                }
+          if(isset(wire('user')->language)) //check for multilanguage
+            {
+              $userLang = wire('user')->language->id;
+              foreach (wire('languages') as $language) {
+                  if ($language->isDefault()) {
+                      $this->timeformat =  $field->timeformat;
+                  } elseif ($language->id == $userLang) {
+                      $this->timeformat = $field->get("timeformat$userLang");
+                  }
+              }
             }
             array_walk_recursive($times, function (&$value, &$key) {
                 if (($key === 'start') || ($key === 'finish')) {
