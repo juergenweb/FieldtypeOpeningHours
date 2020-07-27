@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace ProcessWire;
 
 /**
@@ -39,21 +40,38 @@ class OpeningHours extends WireData
     */
 
     /**
-    * Method to return an multidimensional array with day abbreviations as key and daynames as value
+    * Method to return an multidimensional array with day abbreviations and daynames
     * First item in sub-array is the abbreviation and the second the fullname of the day
     * @return array
     */
     public static function getWeekdays(): array
     {
+        $mo1 = __('Mo');
+        $mo2 = __('Monday');
+        $tu1 = __('Tu');
+        $tu2 = __('Tuesday');
+        $we1 = __('We');
+        $we2 = __('Wednesday');
+        $th1 = __('Th');
+        $th2 = __('Thursday');
+        $fr1 = __('Fr');
+        $fr2 = __('Friday');
+        $sa1 = __('Sa');
+        $sa2 = __('Saturday');
+        $su1 = __('Su');
+        $su2 = __('Sunday');
+        $ho1 = __('Ho');
+        $ho2 = __('Holiday');
+
         return [
-            'mo' => [_('Mo'), _('Monday')],
-            'tu' => [_('Tu'), _('Tuesday')],
-            'we' => [_('We'), _('Wednesday')],
-            'th' => [_('Th'), _('Thursday')],
-            'fr' => [_('Fr'), _('Friday')],
-            'sa' => [_('Sa'), _('Saturday')],
-            'su' => [_('Su'), _('Sunday')],
-            'ho' => [_('Ho'), _('Holiday')]
+            'mo' => [$mo1,$mo2],
+            'tu' => [$tu1,$tu2],
+            'we' => [$we1,$we2],
+            'th' => [$th1,$th2],
+            'fr' => [$fr1,$fr2],
+            'sa' => [$sa1,$sa2],
+            'su' => [$su1,$su2],
+            'ho' => [$ho1,$ho2]
         ];
     }
 
