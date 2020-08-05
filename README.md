@@ -301,6 +301,7 @@ This will only be taken into account if output formatting is not set to false (d
 
 You can select how many times are allowed on each day (minimum 1, maximum 10, default 2). In most cases you will need two times on each day: morning and afternoon.<br />
 You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00) on the frontend. The format of the time can be set in date() and strftime() format.
+You can alter the text of the tableheader of the times column. If you are showing opening hours you will set the table header as "Opening hours". If you want to enter times for courses you would probably add a table header like "Times of courses" or something like that. You can alter the heading of the times column in the backend to fit your requirements (supports multilanguage value).
 
 
 ### To do
