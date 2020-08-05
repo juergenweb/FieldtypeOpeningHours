@@ -248,6 +248,7 @@ You can set the following parameters inside an options-array to manipulate the o
 * timeseparator: separator string between the different times per day (default: ,)
 * closedText: Text (or other markup) that should be displayed if it is closed on that day (default: closed)
 * timesuffix: A text that should be displayed after the time
+* showClosed: show (true) or hide (false) days with no times (default: true) 
 
 ```
 echo $page->fieldname->renderCombinedDays();
