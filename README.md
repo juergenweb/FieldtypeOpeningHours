@@ -225,7 +225,7 @@ Available parameters:
 
 * timeseparator: separator string between the different times per day (default: ,)
 * $timesuffix: show some text or markup after the time string (default: none)
-* $showCosed = show(true) or hide (false) days with no opening times (default: true)
+* $showClosed = show(true) or hide (false) days with no opening times (default: true)
 
 ```
 echo $page->fieldname->renderDay('mo');
