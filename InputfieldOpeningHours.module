@@ -52,6 +52,7 @@ class InputfieldOpeningHours extends Inputfield
                     continue;
                 }
                 $this->set("timeformat$language", '');
+                $this->set("tableheader$language", '');
             }
         }
         return parent::init();
