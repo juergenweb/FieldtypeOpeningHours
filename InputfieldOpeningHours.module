@@ -74,8 +74,23 @@ class InputfieldOpeningHours extends Inputfield
         $output .= '<tr>';
         $output .= '<th>'.$this->_('Day of the week').'</th>';
         $output .= '<th>'.$this->_('Status').'</th>';
-        $tableheader = $this->tableheader ? $this->tableheader : $this->_('Opening hours');
-        $output .= '<th colspan="3">'.$tableheader.'</th>';
+
+        if(wire('languages')){
+          foreach (wire('languages') as $language) {
+            if($language->id == wire('user')->language->id){
+                $tableheader = $this->get("tableheader$language");
+                if($tableheader){
+                  $tableheaderNew = $tableheader;
+                } else if($this->get("tableheader")){
+                  $tableheaderNew = $this->get("tableheader");
+                } else {
+                  $tableheaderNew = $this->_('Opening hours');
+                }
+              
+                $output .= '<th colspan="3">'.$tableheaderNew.'</th>';
+            }
+          }
+        }
         $output .= '</tr>';
         $output .= '</thead>';
         $output .= '<tbody>';
