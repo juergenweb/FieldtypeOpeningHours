@@ -343,7 +343,6 @@ class InputfieldOpeningHours extends Inputfield
         $f->inputType = 'text';
         $f->initValue = '';//default value
         $f->attr('value', $this->tableheader ? $this->tableheader : '');
-        $this->message($this->get("tableheader1045"));
         if ($languages) {
             $f->useLanguages = true;
             foreach ($languages as $language) {
