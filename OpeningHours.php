@@ -335,7 +335,7 @@ class OpeningHours extends WireData
         $out .= $options['ulclass'] ? ' class="'.$options['ulclass'].'"' : '';
         $out .= '>';
         foreach ($this->combinedDays($options['showClosed']) as $key => $arrays) {
-            $out .= '<li>';
+            $out .= '<li class="times">';
             $dayNames = [];
             foreach ($arrays['days'] as $key => $dayAbbr) {
                 $dayNames[] = $options['fulldayName'] ? self::getWeekdays()[$dayAbbr][1] : self::getWeekdays()[$dayAbbr][0];
@@ -356,6 +356,46 @@ class OpeningHours extends WireData
         $out .= '</ul>';
         return $out;
     }
+
+
+    /**
+    * Method to render combined opening times inside an self choosen tag 
+    * @param array $options - various output formatting options
+    * tagName: Set the prefered tag for each line (default is div)
+    * fulldayName: true/false -> if set to true the full day name (fe Monday) will be displayed, otherwise only the abbreviation (fe Mo)
+    * timeseparator : The sign between multiple opening times on the same day
+    * closedText : What should be displayed if it is closed on that day
+    * timesuffix: A text that should be displayed after the time
+    * showClosed: true => closed days will be displayed; false => closed days will be removed
+    * @return string
+    */
+    public function renderCombinedDaysTag(array $options = [])
+    {
+        $defaultOptions =  ['tagName' => 'div', 'fulldayName' => false, 'timeseparator' => ', ', 'closedText' => $this->_('closed'), 'timesuffix' => '', 'showClosed' => true];
+        $options = array_merge($defaultOptions, $options);
+        $out = '';
+        foreach ($this->combinedDays($options['showClosed']) as $key => $arrays) {
+            $out .= '<'.$options['tagName'].' class="times">';
+            $dayNames = [];
+            foreach ($arrays['days'] as $key => $dayAbbr) {
+                $dayNames[] = $options['fulldayName'] ? self::getWeekdays()[$dayAbbr][1] : self::getWeekdays()[$dayAbbr][0];
+            }
+            $out .= implode(', ', $dayNames).': ';
+            $dayTimes = [];
+            foreach ($arrays['opening_hours'] as $key => $times) {
+                if (count(array_filter($times)) === 0) {
+                    //closed
+                    $dayTimes[] = $options['closedText'];
+                } else {
+                    $dayTimes[] = implode(' - ', ['start' => $times['start'], 'finish' => $times['finish']]).$options['timesuffix'];
+                }
+            }
+            $out .= implode(', ', $dayTimes);
+            $out .= '</'.$options['tagName'].'>';
+        }
+        return $out;
+    }
+
 
 
     /**
