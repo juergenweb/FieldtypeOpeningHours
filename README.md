@@ -268,6 +268,29 @@ This renders all combined days with same times in an unordered list:
 </ul>
 ```
 
+If you do not want to output the times inside an unordered list you can use the following render function:
+
+```
+echo $page->fieldname->renderCombinedDaysTag();
+
+or a little bit more advanced with some parameters
+
+echo $page->fieldname->renderCombinedDaysTag(['tagName' => 'span', 'fulldayName' => true, 'timeseparator' => '; ', 'closedText' => '-']);
+```
+
+This is a similar rendering function than the one above with the list, but here you can set the surrounding tag for each time by yourself (default is a div tag).
+
+The output will look like this:
+
+```
+  <div>Mo, Fr: 08:00 - 16:00</div>
+  <div>Tu, Th: 08:00 - 16:00, 18:00 - 20:00</div>
+  <div>We: 16:00 - 23:05</div>
+  <div>Sa, Su, Ho: closed</div>
+```
+
+This is especially useful if you want to show opening times inside an email template, where styling of unordered lists is extremly limited.
+
 #### Render method for JsonLD Schema.org markup
 
 ```
