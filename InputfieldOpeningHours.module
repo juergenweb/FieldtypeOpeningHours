@@ -42,8 +42,8 @@ class InputfieldOpeningHours extends Inputfield
         $info = $this->getModuleInfo();
         $version = $info['version'];
         //Add CSS and JS files for this inputfield
-        $this->config->styles->add(config()->urls->{$this->className} . 'openinghours.css?v='.$version);
-        $this->config->scripts->add(config()->urls->{$this->className} . 'openinghours.js?v='.$version);
+        $this->wire('config')->styles->add(wireconfig()->urls->{$this->className} . 'openinghours.css?v='.$version);
+        $this->wire('config')->scripts->add(wireconfig()->urls->{$this->className} . 'openinghours.js?v='.$version);
         if ($this->languages) {
             foreach ($this->languages as $language) {
                 /** @var Language $language */
