@@ -98,6 +98,11 @@ class OpeningHours extends WireData
     */
     public static function createMultidimArray(array $values): array
     {
+        // Avoid double conversion
+        if (self::isMultidimArray($values)) {
+            return $values;
+        }
+
         $temp_array = [];
         foreach (self::getWeekdays() as $key=>$dayname) {
             foreach ($values as $k=>$v) {
@@ -121,6 +126,18 @@ class OpeningHours extends WireData
         return $newArray;
     }
 
+    /**
+    * Check if the array is already multidimensional
+    * This check is required to avoid double-converting values
+    * in some circumstances, e.g. hidden fieldsets
+    * @param array $array
+    * @return bool
+    */
+    protected static function isMultidimArray(array $array): bool
+    {
+        $firstItem = reset($array);
+        return is_array($firstItem);
+    }
 
     /**
     * Method to flatten the multidimensional array back to a one-dimensional array like we have got from POST
