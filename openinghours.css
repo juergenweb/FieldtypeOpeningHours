@@ -147,7 +147,3 @@ tr.open table.openinghours, tr.closed td.remove-buttons, tr.closed td.add {
 }
 
 .openinghours-table tr.day-ho Element {}
-
-.Inputfields input:not([type="submit"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]):not(.uk-form-blank), .Inputfields textarea:not(.uk-form-blank) {
-  background: #fff;
-}
