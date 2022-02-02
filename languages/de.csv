@@ -1,0 +1,44 @@
+en,de,description,file,hash
+"Expecting an instance of OpeningHours","Eine Instanz von OpeningHours wird erwartet",,site/modules/FieldtypeOpeningHours/FieldtypeOpeningHours.module,6a407ae791665b3d082b66ee255fdb31
+en,de,description,file,hash
+"Day of the week",Wochentag,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,bc51c8dc11ac2c65ffe7a330587a0194
+Status,=,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,ec53a8c4f07baed5d8825072c89799be
+"Opening hours",Öffnungszeiten,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,80a0c205cd57b22fca7f174253870300
+From,von,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,5da618e8e4b89c66fe86e32cdafde142
+To,bis,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,e12167aa0a7698e6ebc92b4ce3909b53
+Add,Hinzufügen,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,ec211f7c20af43e742bf2570c3cb84f9
+Remove,Entfernen,,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,1063e38cb53d94d386f21227fcd84717
+"Incomplete time with only a start or endtime was removed.","Unvollständige Zeit mit nur einer Start- oder Endzeit wurde entfernt.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,faba89c31e63b14b609e6998d4158bfc
+"On %s start and end time is equal.Please set different times.","Am %s ist Start- und Endzeit gleich. Bitte unterschiedliche Zeiten eingeben.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,c650f334d8b8717dc1da5e4c27528a2d
+"On %s start time is after end time. If end time is on the next day it would be ok.","Am %s liegt die Startzeit nach der Endzeit. Wenn die Endzeit am nächsten Tag ist, wäre es in Ordnung.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,0b7ccbde050b20d849f10fa61db68bfc
+"A value was not a valid time string so it was deleted.","Ein eingegebener Wert entsprach keiner gültigen Zeit und wurde daher gelöscht.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,501fa53d947ff2ba6ed392ae5e528212
+"Number of times per day","Anzahl der Zeiten pro Tag",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,11404b07f755b1713b0269da452a11c2
+"Please enter the number of how many different times are allowed on each day.","Bitte geben Sie an, wie viele verschiedene Zeiten an jedem Tag erlaubt sind.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,2c9657d5f8d7aba4cd7d740513e7dc1b
+"For example 2 means, that you can enter 2 different times per day. A max. number of 5 different times per day is possible.","Beispielsweise bedeutet 2, dass Sie 2 verschiedene Zeiten pro Tag eingeben können. Ein max. Anzahl von 5 verschiedenen Zeiten pro Tag ist möglich.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,c8c8d01bb37f303251299a6a2a2471df
+"Timeformat on frontend","Zeitformat auf der Webseite",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,06002dfac324f7ff7eb49a71ec5bd340
+"Please enter the time format in which the times should be displayed on the frontend. Use date() or sprintf() syntax.","Bitte geben Sie das Zeitformat ein, in dem die Zeiten im Frontend angezeigt werden sollen. Verwenden Sie die date()- oder sprintf()-Syntax.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,0e9709308af45f312163172e1ab67095
+"For example a timeformat of %s shows the time as 08:00, a timeformat of %s will be rendered as 08:00 AM. You can find more examples at %s or %s.","Zum Beispiel zeigt ein Zeitformat von %s die Zeit als 08:00, ein Zeitformat von %s wird als 08:00 AM gerendert. Weitere Beispiele finden Sie unter %s oder %s.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,4fbe90c69f315499f57e4c95d5d9ade5
+"Tableheader for times column in backend","Tabellenkopf für Zeitspalte im Backend",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,265a22b5c1436902fe6a2cceaccc6b4b
+"Here you can overwrite (adapt) the tableheader text for the times column to fit your requirements (optional).","Hier können Sie den Tabellenkopftext für die Zeitspalte nach Ihren Wünschen überschreiben bzw. anpassen (optional).",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,a70a57b5e48d563191da61d6c3db17fd
+"This could be fe opening times, times of courses and so on - depending on what times you want to enter.","Das können z.B. Öffnungszeiten, Kurszeiten usw. sein - je nachdem, welchen Zeiten Sie eingeben möchten.",,site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,3d73e8a19eabc56142f2481e5413055f
+"Only 1 time per day is permitted.","Nur 1 Zeiteingabe pro Tag ist erlaubt.","Singular Version",site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,a1e37bd79000e1ced2672e7932d82a24
+"A max number of %s times per day is permitted.","Es ist eine maximale Anzahl von %s Zeiteingaben pro Tag erlaubt.","Plural Version",site/modules/FieldtypeOpeningHours/InputfieldOpeningHours.module,0c26e646fa11c3ab39ff3dac9f9dad82
+en,de,description,file,hash
+closed,geschlossen,,site/modules/FieldtypeOpeningHours/OpeningHours.php,349e686330723975502e9ef4f939a5ac
+Mo,=,,site/modules/FieldtypeOpeningHours/OpeningHours.php,c08df9bb5fb44242a6291b1eee5d09ad
+Monday,Montag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,6f8522e0610541f1ef215a22ffa66ff6
+Tu,Di,,site/modules/FieldtypeOpeningHours/OpeningHours.php,080502c4fa636ac639bf42b6d2ba01d7
+Tuesday,Dienstag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,5792315f09a5d54fb7e3d066672b507f
+We,Mi,,site/modules/FieldtypeOpeningHours/OpeningHours.php,485c47a81eb6e3998ec05aca48eda184
+Wednesday,Mittwoch,,site/modules/FieldtypeOpeningHours/OpeningHours.php,796c163589f295373e171842f37265d5
+Th,Do,,site/modules/FieldtypeOpeningHours/OpeningHours.php,eeeb9a8eb45dd351d9ec0eb4acce66ce
+Thursday,Donnerstag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,78ae6f0cd191d25147e252dc54768238
+Fr,=,,site/modules/FieldtypeOpeningHours/OpeningHours.php,fa717ba17306cd76900510df8ac8013e
+Friday,Freitag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,c33b138a163847cdb6caeeb7c9a126b4
+Sa,=,,site/modules/FieldtypeOpeningHours/OpeningHours.php,e55bb1ae59b6a64858a85a2f48c53036
+Saturday,Samstag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,8b7051187b9191cdcdae6ed5a10e5adc
+Su,So,,site/modules/FieldtypeOpeningHours/OpeningHours.php,f72c915d8f575a5c0999b5f37b6d99b7
+Sunday,Sonntag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,9d1a0949c39e66a0cd65240bc0ac9177
+Ho,Fe,,site/modules/FieldtypeOpeningHours/OpeningHours.php,71aafd38484f3160708c6a6d2d5f736b
+Holiday,Feiertag,,site/modules/FieldtypeOpeningHours/OpeningHours.php,84b8343a7057dcab0a7c7acb6dd4862e
+
