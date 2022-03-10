@@ -122,7 +122,7 @@ class FieldtypeOpeningHours extends Fieldtype
                   }
               }
             }
-            array_walk_recursive($times, function (&$value, &$key) {
+            array_walk_recursive($times, function (&$value, $key) {
                 if (($key === 'start') || ($key === 'finish')) {
                     if ($value) {
                         $value = OpeningHours::formatTimestring($value, $this->timeformat);
