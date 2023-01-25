@@ -88,6 +88,8 @@ The call will always output all times for each day of the week (including holida
 ```
 
 If a day has no times (like ho in this example) means that the company is closed on that day.
+This method outputs the time values with time formats (fe. 08:00 AM). If you need the unformatted values, use the next
+method instead.
 
 #### 2) Get all times a week without output formatting
 If you need the values as stored in the database without output formatting, you have to prevent output formatting by
