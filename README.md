@@ -88,22 +88,8 @@ The call will always output all times for each day of the week (including holida
 ```
 
 If a day has no times (like ho in this example) means that the company is closed on that day.
-This method outputs the time values with time formats (fe. 08:00 AM). If you need the unformatted values, use the next
-method instead.
 
-#### 2) Get all times a week without output formatting
-If you need the values as stored in the database without output formatting, you have to prevent output formatting by
-setting it to false. This prevents the formatValue() method to change the times to the format you have set in the
-backend.
-
-```
-$page->setOutputFormatting(false);
-print_r($page->fieldname->times);
-$page->setOutputFormatting(true);
-```
-Don't forget to set output formatting to true afterwards.
-
-#### 3) Get the opening times on a specific day
+#### 2) Get the opening times on a specific day
 
 You can use the day abbreviation as an array key to get the times on a specific day:
 Abbreviations that can be used: mo, tu, we, th, fr, sa, su, ho. ho stands for Holiday in this case.
@@ -129,7 +115,7 @@ each day (not only one, as in this example).
 You can use this array on the frontend to create the markup by yourself.
 
 
-#### 4) Get combined days with same opening hours
+#### 3) Get combined days with same opening hours
 Sometimes we have same opening hours on different days. With this method, you can combine and output them as an array.
 
 ```
@@ -186,7 +172,7 @@ Adding false inside the parenthesis will remove days with no times from the arra
 
 This method was inspired by Spatie/Openinghours (https://github.com/spatie/opening-hours).
 
-#### 5) Get combined times for Schema.org JsonLD Markup
+#### 4) Get combined times for Schema.org JsonLD Markup
 The following method returns an array with combined opening times for a week. You can use it to create your own render
 function for schema.org markup.
 
@@ -202,6 +188,18 @@ As you can see, days with the same opening times will be combined. You can use t
 yourself.
 The times are always in H:i format (independent of language settings), because Schema.org only accepts this format.
 So keep this in mind if you are running a multilingual site.
+
+### Get raw values without output formatting
+Tipp: If you need the values as stored in the database without output formatting, you have to prevent output formatting by
+setting it to false. This prevents the formatValue() method to change the times to the format you have set in the
+backend. This is nothing special for this module - this is a standard ProcessWire method.
+
+```
+$page->setOutputFormatting(false);
+// put here your method/property call
+$page->setOutputFormatting(true);
+```
+
 
 ### Render methods
 The render methods return a string for direct output in the templates. You can use these methods if they satisfy your
