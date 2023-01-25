@@ -205,13 +205,13 @@ So keep this in mind if you are running a multilingual site.
 The render methods return a string for direct output in the templates. You can use these methods if they satisfy your
 needs. If you want to customize your markup it will be better to use the array methods above and create the markup by
 your own.
-By the way: The render methods have also some parameter settings to influence the output - so a little bit of
+By the way: The render methods have also some parameter settings to influence the output - so a little of
 customization is always possible ;-)
 
 #### 1) Render all opening times
 
 This renders all opening times as an unordered list. You can set some options (ulclass, fulldayName, timesseparator,
-timesuffix, showClosed) to change the markup a little bit.
+timesuffix, showClosed) to change the markup a little.
 
 Explanation of the settings parameter:
 
@@ -360,7 +360,7 @@ This module includes also the German translation file.
 You can select how many times are allowed on each day (minimum 1, maximum 5, default 2). In most cases, you will need
 two times on each day: morning and afternoon.
 You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00 in
-24 hour format) on the frontend.
+24-hour-format) on the frontend.
 The format of the time can be set in date() and strftime() format.
 You can alter the text of the table header of the 'times column'. If you are showing opening hours, you will set the
 table header as "Opening hours". If you want to enter times for courses, you would probably add a table header like
@@ -373,6 +373,13 @@ requirements (supports multi-language value).
 ### To do
 
 At the moment nothing is planned.
+
+### Known issues
+If you are using the old default admin template of Processwire and you decrease the screen size, the JavaScript does not
+work properly by adding/removing the times per day. 
+But this is only the case on reduced screen sizes in combination with the old admin template. If the screen size is
+larger, there are no problems. On the UIKit admin template everything works fine.
+I recommend you to use the UIKit template.
 
 ## How to install
 
