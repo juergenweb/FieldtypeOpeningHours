@@ -230,7 +230,7 @@ echo $page->fieldname->render();
 or a little bit more advanced with some parameters as explained above
 
 echo $page->fieldname->render(['ulclass' => 'uk-list', 'fulldayName' => true, 'timeseparator' => '; ',
-'timesuffix' = ' h', 'showClosed' => false]);
+'timesuffix' => ' h', 'showClosed' => false]);
 ```
 
 This renders all times as an unordered list like this:
