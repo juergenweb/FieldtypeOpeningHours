@@ -261,7 +261,7 @@ echo $page->fieldname->renderDay('mo');
 
 or more advanced with parameters
 
-echo $page->fieldname->renderDay('mo', ['; ', false]);
+echo $page->fieldname->renderDay('mo', ['timeseparator' => '; ', 'timesuffix' => ' hour', 'showClosed' => true]);
 ```
 This results fe in the following output:
 
