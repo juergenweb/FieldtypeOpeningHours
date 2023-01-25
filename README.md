@@ -261,7 +261,7 @@ echo $page->fieldname->renderDay('mo');
 
 or more advanced with parameters
 
-echo $page->fieldname->renderDay('mo', '; ', false);
+echo $page->fieldname->renderDay('mo', ['; ', false]);
 ```
 This results fe in the following output:
 
