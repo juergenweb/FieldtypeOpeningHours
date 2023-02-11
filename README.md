@@ -10,7 +10,7 @@ Each day can have multiple times (max. 5) or nothing at all (closed).
 
 ## What it does
 
-This module you enter various times per day by using a special designed UI. You can add more times by clicking
+This module let you enter various times per day by using a special designed UI. You can add more times by clicking
 an add button. The new input will be created dynamically via JQuery. The status (open/closed) can be set via a
 toggle switch.
 
