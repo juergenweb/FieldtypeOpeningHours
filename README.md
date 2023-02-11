@@ -22,6 +22,21 @@ times per day.
 
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/database.png?raw=true)
 
+### Configuration
+
+- **'Number of times per day'** You can select how many times are allowed on each day (minimum 1, maximum 5, default 2). In most cases, you will need
+two times on each day: morning and afternoon.
+- **'Output formatting of time string'** You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00 in
+24-hour-format) on the frontend.
+The format of the time can be set in date() and strftime() format.
+- '**Change tableheader text in input field'** You can alter the text of the table header of the 'times column'. If you are showing opening hours, you will set the
+table header as "Opening hours". If you want to enter times for courses, you would probably add a table header like
+"Times of courses" or something like that. You can alter the heading of the 'times column' in the backend to fit your
+requirements (supports multi-language value).
+
+![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/configuration.png?raw=true)
+
+
 ## Limitations
 
 This input field does not take account of exceptions. Handling exceptions (fe special opening times on Christmas) is
@@ -357,21 +372,6 @@ All static texts are fully translatable (frontend and backend). The time format 
 each language in the backend configuration of the input field (fe default is %R and English is %r).
 This will only be taken into account if output formatting is not set to false (default is true).
 This module includes also the German translation file.
-
-### Field Settings
-
-You can select how many times are allowed on each day (minimum 1, maximum 5, default 2). In most cases, you will need
-two times on each day: morning and afternoon.
-You can also set the output formatting of the time string (default is %R which is equal to an output like 08:00 in
-24-hour-format) on the frontend.
-The format of the time can be set in date() and strftime() format.
-You can alter the text of the table header of the 'times column'. If you are showing opening hours, you will set the
-table header as "Opening hours". If you want to enter times for courses, you would probably add a table header like
-"Times of courses" or something like that. You can alter the heading of the 'times column' in the backend to fit your
-requirements (supports multi-language value).
-
-![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/configuration.png?raw=true)
-
 
 ### To do
 
