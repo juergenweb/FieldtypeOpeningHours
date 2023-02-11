@@ -31,17 +31,17 @@ very complicated. So this module can handle only default times.
 
 A lot of sanitization and validation will take place inside the processInput method to 'clean' user inputs:
 
-- **`duplicate times on one day will be removed`** - only one entry remains of each kind per day (doesn't make sense to have 
+- **`duplicate times on one day will be removed`** Only one entry remains of each kind per day (doesn't make sense to have 
 same times on one day)
-- multiple empty times (empty inputs) will be removed. This can result from clicking the add button multiple times to
+- **`multiple empty times (empty inputs) will be removed`** This can result from clicking the add button multiple times to
 create new inputs and do not enter any values.
-- incomplete times (only start or end time) will be removed - every opening time must have a start and end time
-- inputs which are not a string and/or not in a valid time format will be deleted.
-- re-ordering of multiple times on each day by sorting the start times (fe first time is 14:00 - 18:00 and second
-time is 07:00 - 12:00, then the second one will be the first one after ascending re-ordering).
-- checking if start time is equal the end time (if yes, an error message will be shown, because this doesn't make sense)
-- checking if start time is before the end time (if not, a warning message will be shown. Could only be valid if end
-time is on the next day - fe: 20:00 - 03:00).
+- **`incomplete times (only start or end time) will be removed`** Every opening time must have a start and end time
+- **`inputs which are not a string and/or not in a valid time format will be deleted`**
+- **`re-ordering of multiple times on each day by sorting the start times`** Fe first time is 14:00 - 18:00 and second
+time is 07:00 - 12:00, then the second one will be the first one after ascending re-ordering.
+- **`checking if start time is equal the end time`** If yes, an error message will be shown, because this doesn't make sense
+- **`checking if start time is before the end time`** If not, a warning message will be shown. Could only be valid if end
+time is on the next day - fe: 20:00 - 03:00.
 
 ## Output in templates
 
