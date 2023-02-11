@@ -31,7 +31,7 @@ very complicated. So this module can handle only default times.
 
 A lot of sanitization and validation will take place inside the processInput method to 'clean' user inputs:
 
-- ** 'duplicate times on one day will be removed' ** - only one entry remains of each kind per day (doesn't make sense to have 
+- **`duplicate times on one day will be removed`** - only one entry remains of each kind per day (doesn't make sense to have 
 same times on one day)
 - multiple empty times (empty inputs) will be removed. This can result from clicking the add button multiple times to
 create new inputs and do not enter any values.
