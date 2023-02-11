@@ -8,7 +8,7 @@ This input field can also be used to enter times of courses (first course starts
 of a company.
 Each day can have multiple times (max. 5) or nothing at all (closed).
 
-## What it does
+## Inputfield
 
 This module let you enter various times per day by using a special designed UI. You can add more times by clicking
 an add button. The new input will be created dynamically via JQuery. The status (open/closed) can be set via a
