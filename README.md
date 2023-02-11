@@ -8,6 +8,10 @@ This input field can also be used to enter times of courses (first course starts
 of a company.
 Each day can have multiple times (max. 5) or nothing at all (closed).
 
+## Requirements
+- ProcessWire 3.0.195 or newer
+- PHP 8.0 or newer
+
 ## Inputfield
 
 This module let you enter various times per day by using a special designed UI. You can add more times by clicking
