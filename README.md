@@ -9,7 +9,7 @@ of a company.
 Each day can have multiple times (max. 5) or nothing at all (closed).
 
 ## Requirements
-- ProcessWire 3.0.195 or newer
+- ProcessWire 3.0.181 or newer
 - PHP 8.0 or newer
 
 ## Inputfield
