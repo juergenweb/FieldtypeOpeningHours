@@ -1,4 +1,7 @@
 # Inputfield-Fieldtype Openinghours for ProcessWire CMS
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![ProcessWire 3](https://img.shields.io/badge/ProcessWire-3.x-orange.svg)](https://github.com/processwire/processwire)
+
 An Inputfield and Fieldtype to store various times on each day fe business times for a company.
 This input field can also be used to enter times of courses (first course starts from 08:00-9:30, second from
 10:00-11:30,..), times for theater performances, workshops and so on, but it was primarily developed for opening times
