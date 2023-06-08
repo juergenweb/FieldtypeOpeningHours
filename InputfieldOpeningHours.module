@@ -370,6 +370,35 @@ class InputfieldOpeningHours extends Inputfield
 
         $inputfields->add($f);
 
+
+        /**  $docFieldset */
+        $docFieldset = $this->wire('modules')->get('InputfieldFieldset');
+        $docFieldset->label = $this->_('How to');
+        $docFieldset->description = $this->_('This is a simple quick start guide on how to output the opening hours in your site.');
+        $docFieldset->collapsed = true;
+        $docFieldset->columnWidth = 100;
+
+        $text = '<h3>' . $this->_('Easiest integration') . '</h3>';
+        $text .= '<p>' . $this->_('Put this code inside your template, where the opening hours should be displayed.') . '</p>';
+        $text .= '<pre><code>echo $page->'.$this->name.'->render();</code></pre>';
+        $text .= '<p>' . $this->_('In this case the opening hours for each day will be displayed as an unordered list.'). '</p>';
+        $text .= '<pre><code><ul><li class="time day-mo">Mo: 08:00:00 AM - 12:00:00 PM, 02:00:00 PM - 06:00:00 PM</li><li class="time day-tu">Tu: 08:00:00 AM - 12:00:00 PM</li><li class="time day-we">We: 02:00:00 PM - 06:00:00 PM</li><li class="time day-th">Th: 08:00:00 AM - 12:00:00 PM, 02:00:00 PM - 06:00:00 PM</li><li class="time day-fr">Fr: 08:00:00 AM - 12:00:00 PM</li><li class="time day-sa">Sa: 08:00:00 AM - 10:00:00 AM</li><li class="time day-su">Su: closed</li><li class="time day-ho">Ho: closed</li></ul></code></pre>';
+        $text .= '<h3>' . $this->_('Render combined days with same opening times') . '</h3>';
+        $text .= '<pre><code>echo $page->'.$this->name.'->renderCombinedDays();</code></pre>';
+        $text .= '<pre><code><ul><li class="times">Mo, Th: 08:00:00 AM - 12:00:00 PM, 02:00:00 PM - 06:00:00 PM</li><li class="times">Tu, Fr: 08:00:00 AM - 12:00:00 PM</li><li class="times">We: 02:00:00 PM - 06:00:00 PM</li><li class="times">Sa: 08:00:00 AM - 10:00:00 AM</li><li class="times">Su, Ho: closed</li></ul></code></pre>';
+        $text .= '<h3>' . $this->_('Render only the opening times of one specific day') . '</h3>';
+        $text .= '<p>' . $this->_('If you want to display the opening times on a specific day (fe Monday), you can do it like this:') . '</p>';
+        $text .= '<pre><code>echo $page->'.$this->name.'->renderDay(\'mo\');</code></pre>';
+        $text .= '<p>' . $this->_('This will output the opening hours on that day as a string.') . '</p>';
+        $text .= '<pre><code>08:00:00 AM - 12:00:00 PM, 02:00:00 PM - 06:00:00 PM</code></pre>';
+        $link = '<a href="https://github.com/juergenweb/FieldtypeOpeningHours/tree/master#output-in-templates" target="_blank">GitHub</a>';
+        $text .= sprintf($this->_('You will find more advanced output methods inside the description of this module on %s.'), $link);
+
+        $description = $this->wire()->modules->get('InputfieldMarkup');
+        $description->markupText = $text;
+        $docFieldset->add($description);
+        $inputfields->add($docFieldset);
+
         return $inputfields;
     }
 
