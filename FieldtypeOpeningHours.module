@@ -20,7 +20,7 @@ class FieldtypeOpeningHours extends Fieldtype
         return array(
             'title' => 'Openinghours',
             'summary' => 'Fieldtype that stores opening hours for each day of the week (including additional input for holidays)',
-            'version' => '1.2',
+            'version' => '1.3',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'installs' => 'InputfieldOpeningHours',
