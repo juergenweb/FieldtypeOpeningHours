@@ -310,9 +310,6 @@ class InputfieldOpeningHours extends Inputfield
 
         $languages = $this->wire('languages');
 
-        // get rid of required config field, because we cannot use it here
-        $inputfields->remove('required');
-
         /** @var InputfieldInteger $f */
         $f = $this->wire('modules')->get('InputfieldInteger');
         $f->attr('name+id', 'numberOftimes');
