@@ -1,9 +1,15 @@
 <?php
 declare(strict_types=1);
+
 namespace ProcessWire;
+
+use Exception;
 
 class FieldtypeOpeningHours extends Fieldtype
 {
+
+    protected string|null $timeformat = '%R'; // the php time format
+    protected string|null|int $numberOftimes = 2; // the number of different opening times per day
 
     public function __construct()
     {
@@ -15,7 +21,10 @@ class FieldtypeOpeningHours extends Fieldtype
         parent::__construct();
     }
 
-    public static function getModuleInfo()
+    /**
+     * @return array
+     */
+    public static function getModuleInfo():array
     {
         return array(
             'title' => 'Openinghours',
@@ -27,41 +36,37 @@ class FieldtypeOpeningHours extends Fieldtype
             'requires' => [
                 'PHP>=7.2.0',
                 'ProcessWire>=3.0.181'
-              ],
+            ],
             'author' => 'Jürgen Kern'
         );
     }
 
-
     /**
-     * @param \ProcessWire\Page $page
-     * @param \ProcessWire\Field $field
-     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
-     * @throws \ProcessWire\WirePermissionException
-     * link the core inputfieldmarkup to this fieldtype and return the associated Inputfield
+     * @param Page $page
+     * @param Field $field
+     * @return string|_Module|Module
+     * @throws WirePermissionException link the core inputfieldmarkup to this fieldtype and return the associated Inputfield
      */
-    public function getInputfield(Page $page, Field $field)
+    public function getInputfield(Page $page, Field $field):_Module|Module|string
     {
         return $this->modules->get('InputfieldOpeningHours');
     }
 
-
     /**
-     * @param \ProcessWire\Field $field
-     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * @param Field $field
+     * @return null User is not allowed to change this fieldtype to another
      * User is not allowed to change this fieldtype to another
      */
-    public function ___getCompatibleFieldtypes(Field $field)
+    public function ___getCompatibleFieldtypes(Field $field):null
     {
         return null;
     }
 
-
     /**
-     * @param \ProcessWire\Page $page
-     * @param \ProcessWire\Field $field
-     * @param int|object|\ProcessWire\WireArray|string $value
-     * @return int|null|object|\ProcessWire\OpeningHours|\ProcessWire\WireArray|string
+     * @param Page $page
+     * @param Field $field
+     * @param int|object|WireArray|string $value
+     * @return int|null|object|OpeningHours|WireArray|string
      * will be called on before sleepValue and after wakeupValue
      */
     public function sanitizeValue(Page $page, Field $field, $value)
@@ -76,13 +81,12 @@ class FieldtypeOpeningHours extends Fieldtype
         return $value;
     }
 
-
     /**
      * Convert from DB storage to API value
      * Given a raw value (value as stored in DB), return the value as it would appear in a Page object
      * get value directly from the db and sends it to sanatize method
-     * @param \ProcessWire\Page $page
-     * @param \ProcessWire\Field $field
+     * @param Page $page
+     * @param Field $field
      * @param $value
      * @return mixed|string
      */
@@ -92,7 +96,8 @@ class FieldtypeOpeningHours extends Fieldtype
         // instantiate a new object
         $times = $this->getBlankValue($page, $field);
         // populate the times object -> convert it from json to array
-        $daytimes = $value['times'] ? json_decode($value['times'], true) : json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true);
+        $daytimes = $value['times'] ? json_decode($value['times'],
+            true) : json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true);
         $times->times = $daytimes;
         // make configurationfields callable via API
         $times->numberOftimes = (string)$field->numberOftimes;
@@ -101,26 +106,26 @@ class FieldtypeOpeningHours extends Fieldtype
     }
 
     /**
-    * Method to format the time for each language according to the settings in the configuation of the inputfield
-    * @param \ProcessWire\Page $page
-    * @param \ProcessWire\Field $field
-    * @param $value
-    * @return mixed|string
-    */
+     * Method to format the time for each language according to the settings in the configuation of the inputfield
+     * @param Page $page
+     * @param Field $field
+     * @param $value
+     * @return mixed|string
+     */
     public function formatValue(Page $page, Field $field, $value)
     {
         $times = $value;
         if ($times) {
-            if(isset(wire('user')->language)) //check for multilanguage
+            if (isset(wire('user')->language)) //check for multilanguage
             {
-              $userLang = wire('user')->language->id;
-              foreach (wire('languages') as $language) {
-                  if ($language->isDefault()) {
-                      $this->timeformat =  $field->timeformat;
-                  } elseif ($language->id == $userLang) {
-                      $this->timeformat = $field->get("timeformat$userLang");
-                  }
-              }
+                $userLang = wire('user')->language->id;
+                foreach (wire('languages') as $language) {
+                    if ($language->isDefault()) {
+                        $this->timeformat = $field->timeformat;
+                    } elseif ($language->id == $userLang) {
+                        $this->timeformat = $field->get("timeformat$userLang");
+                    }
+                }
             }
             array_walk_recursive($times, function (&$value, $key) {
                 if (($key === 'start') || ($key === 'finish')) {
@@ -131,8 +136,8 @@ class FieldtypeOpeningHours extends Fieldtype
             });
             return $times;
         }
+        return null;
     }
-
 
     /**
      * Create a new instance of OpeningHours
@@ -149,21 +154,21 @@ class FieldtypeOpeningHours extends Fieldtype
         return $times;
     }
 
-
     /**
      * Given an 'awake' value, as set by wakeupValue, convert the value back to a basic type for storage in DB
      * gets the value from the sanatize method
-     * @param \ProcessWire\Page $page
-     * @param \ProcessWire\Field $field
+     * @param Page $page
+     * @param Field $field
      * @param array $value
-     * @return json array
+     * @return array
+     * @throws Exception
      */
-    public function ___sleepValue(Page $page, Field $field, $value)
+    public function ___sleepValue(Page $page, Field $field, $value):array
     {
         $value = parent::___sleepValue($page, $field, $value);
         // throw error if value is not of the right type
         if (!$value instanceof OpeningHours) {
-            throw new \Exception($this->_('Expecting an instance of OpeningHours'));
+            throw new Exception($this->_('Expecting an instance of OpeningHours'));
         }
 
         $timesValues = $value->data['times'];
@@ -171,19 +176,17 @@ class FieldtypeOpeningHours extends Fieldtype
         //create json string for storage in the DB
         $value = json_encode($timesValues);
 
-        $sleepValue = array(
-          'times' => $value,
+        return array(
+            'times' => $value,
         );
 
-        return $sleepValue;
     }
 
-
     /**
-     * @param \ProcessWire\Field $field
-     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * @param Field $field
+     * @return array
      */
-    public function getDatabaseSchema(Field $field)
+    public function getDatabaseSchema(Field $field):array
     {
         $schema = parent::getDatabaseSchema($field);
         $schema['times'] = 'TEXT DEFAULT NULL';
