@@ -17,7 +17,7 @@ To let you use this field without reading the docs first, I have included a quic
 
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/quickstartguide.png?raw=true)
 
-You only have to copy the prefered code from there and paste it inside your template and now you can output the opening times.
+You only have to copy the prefered code from there and paste it inside your template and now you can output the opening times. For more advanced integration you will need to read the docs.
 
 ## Inputfield
 
