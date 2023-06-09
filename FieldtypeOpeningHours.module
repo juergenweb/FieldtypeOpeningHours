@@ -29,12 +29,12 @@ class FieldtypeOpeningHours extends Fieldtype
         return array(
             'title' => 'Openinghours',
             'summary' => 'Fieldtype that stores opening hours for each day of the week (including additional input for holidays)',
-            'version' => '1.3',
+            'version' => '1.0.3',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'installs' => 'InputfieldOpeningHours',
             'requires' => [
-                'PHP>=7.2.0',
+                'PHP>=8.0.0',
                 'ProcessWire>=3.0.181'
             ],
             'author' => 'Jürgen Kern'
@@ -88,9 +88,9 @@ class FieldtypeOpeningHours extends Fieldtype
      * @param Page $page
      * @param Field $field
      * @param $value
-     * @return mixed|string
+     * @return OpeningHours
      */
-    public function ___wakeupValue(Page $page, Field $field, $value)
+    public function ___wakeupValue(Page $page, Field $field, $value): OpeningHours
     {
         $value = parent::___wakeupValue($page, $field, $value);
         // instantiate a new object
@@ -144,13 +144,13 @@ class FieldtypeOpeningHours extends Fieldtype
      *
      * @param Page $page
      * @param Field $field
-     * @return object
+     * @return OpeningHours
      *
      */
-    public function getBlankValue(Page $page, Field $field)
+    public function getBlankValue(Page $page, Field $field): OpeningHours
     {
         $times = new OpeningHours();
-        $times->setTrackChanges(true);
+        $times->setTrackChanges();
         return $times;
     }
 
