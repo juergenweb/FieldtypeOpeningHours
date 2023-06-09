@@ -23,12 +23,12 @@ class InputfieldOpeningHours extends Inputfield
         return array(
             'title' => 'Inputfield Opening Hours',
             'summary' => 'Renders an input field for entering opening hours',
-            'version' => 1.3,
+            'version' => '1.0.3',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'permanent' => false,
             'requires' => [
-                'PHP>=7.2.0',
+                'PHP>=8.0.0',
                 'ProcessWire>=3.0.181',
                 'FieldtypeOpeningHours'
             ],
