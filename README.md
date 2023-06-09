@@ -12,6 +12,13 @@ Each day can have multiple times (max. 5) or nothing at all (closed).
 - ProcessWire 3.0.181 or newer
 - PHP 8.0 or newer
 
+## Quick-start guide
+To let you use this field without reading the docs first, I have included a quick-start guide inside the configuration of the inputfield. So if you have created a new field of this field type, you will find this quick start guide in the field configuration inside the input tab.
+
+![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/quickstartguide.png?raw=true)
+
+You only have to copy the prefered code from there and paste it inside your template and now you can output the opening times.
+
 ## Inputfield
 
 This module let you enter various times per day by using a special designed UI. You can add more times by clicking
