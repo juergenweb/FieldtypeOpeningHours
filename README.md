@@ -17,7 +17,7 @@ To let you use this field without reading the docs first, I have included a quic
 
 ![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/quickstartguide.png?raw=true)
 
-You only have to copy the prefered code from there and paste it inside your template and now you can output the opening times. For more advanced integration you will need to read the docs.
+You only have to copy the preferred code from there and paste it inside your template, and now you can output the opening times. For more advanced integration you will need to read the docs.
 
 ## Inputfield
 
@@ -44,9 +44,6 @@ The format of the time can be set in date() and strftime() format.
 table header as "Opening hours". If you want to enter times for courses, you would probably add a table header like
 "Times of courses" or something like that. You can alter the heading of the 'times column' in the backend to fit your
 requirements (supports multi-language value).
-
-![alt text](https://github.com/juergenweb/FieldtypeOpeningHours/blob/master/images/configuration.png?raw=true)
-
 
 ## Limitations
 
@@ -219,7 +216,7 @@ The times are always in H:i format (independent of language settings), because S
 So keep this in mind if you are running a multilingual site.
 
 ### Get raw values without output formatting
-Tipp: If you need the values as stored in the database without output formatting, you have to prevent output formatting by
+Tip: If you need the values as stored in the database without output formatting, you have to prevent output formatting by
 setting it to false. This prevents the formatValue() method to change the times to the format you have set in the
 backend. This is nothing special for this module - this is a standard ProcessWire method.
 
@@ -231,41 +228,42 @@ $page->setOutputFormatting(true);
 
 
 ### Render methods
-The render methods return a string for direct output in the templates. You can use these methods if they satisfy your
+The render methods return a string for direct output inside templates. You can use these methods if they satisfy your
 needs. If you want to customize your markup it will be better to use the array methods above and create the markup by
 your own.
 By the way: The render methods have also some parameter settings to influence the output - so a little of
 customization is always possible ;-)
 
-#### 1) Render all opening times
+#### 1) Render all opening times with the render() method
 
-This renders all opening times as an unordered list. You can set some options (ulclass, fulldayName, timesseparator,
-timesuffix, showClosed) to change the markup a little.
+This is the base rendering method. You have a lot of options to change the output to your needs:
 
-Explanation of the settings parameter:
+  * wrappertag: set the tag for the outer container (default is ul)
+  * wrapperclass: add a CSS class to the wrapper tag (default: '')
+  * itemtag: set the outer tag for the container containing the day opening times per day (default is li)
+  * daytag: the tag element which surrounds the day name (default: false -> not surrounding element)
+  * dayclass: a CSS class for the daytag element (default: false -> no class)
+  * timetag: the tag element which surrounds the opening times on that day (default: false -> not surrounding element)
+  * timeclass: a CSS class  for the timetag element (default: false -> no class)
+  * daytimeseparator: add a string to separate the day name and the times or add false to remove it (default is :)
+  * fulldayName: show fullname (true) or dayname abbreviation (false) -> (default: false)
+  * timeseparator: separator between multiple times (default: ,)
+  * timesuffix: add text after timestring (default: '')
+  * showClosed: true/false show closed days or not (default: true)
+  * showHoliday: true/false show Holiday or not (default: true)
+  * closedText: overwrite the default text for closed days (default is closed)
 
-* ulclass: enter a class for the unordered list (default:none)
-* fulldayName: output the full name (fe Monday) is set to true and the abbreviation (fe Mo) if set to false
-(default: false)
-* timeseparator: separator string between the different times per day (default: ',')
-* timesuffix: A text that should be displayed after the time (default: none)
-* showClosed: true: closed days will be displayed; false: closed days will not be displayed (default: true)
-
-Please use these parameters as an array (see example below) inside the parenthesis.
+All of these parameters can be set as an array inside the brackets of the method to overwrite the default parameters.
+By default, the opening times will be rendered as an unordered list.
 
 ```
 echo $page->fieldname->render();
-
-or a little bit more advanced with some parameters as explained above
-
-echo $page->fieldname->render(['ulclass' => 'uk-list', 'fulldayName' => true, 'timeseparator' => '; ',
-'timesuffix' => ' h', 'showClosed' => false]);
 ```
 
 This renders all times as an unordered list like this:
 
 ```
-<ul class="uk-list">
+<div class="opening-list">
   <li class="time day-mo">Monday: 11:00-11:30 h; 12:00-13:00 h; 14:00-15:00 h</li>
   <li class="time day-tu">Tuesday: closed</li>
   <li class="time day-we">Wednesday: closed</li>
@@ -277,6 +275,38 @@ This renders all times as an unordered list like this:
 </ul>
 ```
 
+A little bit more advanced with some parameters changed.
+
+Explanation of the settings parameter:
+* wrappertag: set the tag for the outer container (default is ul)
+* daytag: set the tag for the container containing the day opening times (default is li)
+* wrapperclass: enter a class for the wrapping element (default:none)
+* fulldayName: output the full name (fe Monday) is set to true and the abbreviation (fe Mo) if set to false
+  (default: false)
+* timeseparator: separator string between the different times per day (default: ',')
+* timesuffix: A text that should be displayed after the time (default: none)
+* showClosed: true: closed days will be displayed; false: closed days will not be displayed (default: true)
+
+Please use these parameters as an array (see example below) inside the parenthesis.
+
+```
+echo $page->fieldname->render(['wrappertag' => 'div', 'itemtag' => 'div', 'daytag' => 'span', 'timetag' => 'span', 'wrapperclass' => 'opening-list', 'fulldayName' => true, 'timeseparator' => '; ',
+    'timesuffix' => ' h', 'showClosed' => false]);
+```
+
+This renders all times in a list like this:
+
+```
+<div class="opening-list">
+<div class="time day-mo"><span class="day-mo">Monday:</span> <span class="time mo">8:00 - 12:00 h</span></div>
+<div class="time day-tu"><span class="day-tu">Tuesday:</span> <span class="time tu">8:00 - 12:00 h</span></div>
+<div class="time day-we"><span class="day-we">Wednesday:</span> <span class="time we">8:00 - 12:00 h; 14:00 - 18:00 h</span></div>
+<div class="time day-th"><span class="day-th">Thursday:</span> <span class="time th">12:00 - 16:00 h</span></div>
+<div class="time day-fr"><span class="day-fr">Friday:</span> <span class="time fr"></span></div><div class="time day-sa"><span class="day-sa">Saturday:</span> <span class="time sa"></span></div>
+<div class="time day-su"><span class="day-su">Sunday:</span> <span class="time su"></span></div><div class="time day-ho"><span class="day-ho">Holiday:</span> <span class="time ho"></span></div>
+</div>
+```
+
 #### 2) Render only the opening times of one specific day.
 
 Available parameters:
@@ -286,29 +316,24 @@ Available parameters:
 * $showClosed = show(true) or hide (false) days with no opening times (default: true)
 
 ```
-echo $page->fieldname->renderDay('mo');
+echo $page->fieldname->renderDayTime('mo');
 
 or more advanced with parameters
 
-echo $page->fieldname->renderDay('mo', ['timeseparator' => '; ', 'timesuffix' => ' hour', 'showClosed' => true]);
+echo $page->fieldname->renderDayTime('mo', ['timeseparator' => '; ', 'timesuffix' => ' hour', 'showClosed' => true]);
 ```
 This results fe in the following output:
 
 ```
 08:00-12:00; 14:00-18:00
 ```
+Please note: The deprecated method renderDay() does the same and can be used, but this method name fits better
+to the result of this method, so it was renamed.
+
 
 #### 3) Render combined days with same opening times.
 
 You can set the following parameters inside an options-array to manipulate the output:
-
-* ulclass: enter a class for the unordered list (default:none)
-* fulldayName: output the full name (fe Monday) is set to true or the abbreviation (fe Mo) if set to false
-(default: false)
-* timeseparator: separator string between the different times per day (default: ',')
-* closedText: Text (or other markup) that should be displayed if it is closed on that day (default: closed)
-* timesuffix: A text that should be displayed after the time
-* showClosed: show (true) or hide (false) days with no times (default: true) 
 
 ```
 echo $page->fieldname->renderCombinedDays();
@@ -323,35 +348,52 @@ This renders all combined days with same times as an unordered list:
 
 ```
 <ul class="uk-list">
-  <li>Mo, Fr: 08:00 - 16:00</li>
-  <li>Tu, Th: 08:00 - 16:00, 18:00 - 20:00</li>
-  <li>We: 16:00 - 23:05</li>
-  <li>Sa, Su, Ho: closed</li>
+<li class="oh-item">Monday, Tuesday:8:00 - 12:00</li>
+<li class="oh-item">Wednesday:8:00 - 12:00, 14:00 - 18:00</li>
+<li class="oh-item">Thursday:12:00 - 16:00</li>
+<li class="oh-item">Friday, Saturday, Sunday, Holiday:-</li>
 </ul>
 ```
 
-If you do not want to output the times inside an unordered list, you can use the following render function:
+#### 4) Pre-defined rendering functions
+
+As an addition and to keep things short and easy, you can use these methods to get another markup:
+
+On every method you can enter 2 parameters inside the parenthesis: The first one is the option array, which has been 
+described before, and the second one is a boolean parameter to render combined times or not.
+
+##### renderTable()
+This outputs all opening times inside a table.
 
 ```
-echo $page->fieldname->renderCombinedDaysTag();
-
-or a little bit more advanced with some parameters
-
-echo $page->fieldname->renderCombinedDaysTag(['tagName' => 'span', 'fulldayName' => true, 'timeseparator' => '; ',
-'closedText' => '-']);
+echo $page->fieldname->renderTable();
 ```
 
-This is a similar rendering function as the one above, but in this case you can set the surrounding tag for
-each time by yourself (default is a div tag).
-
-The output will look like this:
+or with parameters:
 
 ```
-  <div>Mo, Fr: 08:00 - 16:00</div>
-  <div>Tu, Th: 08:00 - 16:00, 18:00 - 20:00</div>
-  <div>We: 16:00 - 23:05</div>
-  <div>Sa, Su, Ho: closed</div>
+echo $page->fieldname->renderTable(['wrapperclass' = 'myclass'], true);
 ```
+
+The first parameter adds the CSS class "myclass" to the table tag and the second parameter forces the output of combined
+times.
+
+##### renderDefinitionList()
+This outputs all opening times as a definition list.
+
+```
+echo $page->fieldname->renderDefinitionList();
+```
+
+or with parameters:
+
+```
+echo $page->fieldname->renderDefinitionList(['wrapperclass' = 'mydefinitionlist'], true);
+```
+
+The first parameter adds the CSS class "mydefinitionlist" to the dl tag and the second parameter forces the output of 
+combined times.
+
 
 #### Render method for JsonLD Schema.org markup
 
