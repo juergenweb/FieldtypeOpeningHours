@@ -306,14 +306,20 @@ class OpeningHours extends WireData {
      * @param array $options - the options array containing the settings
      * @return string
      */
-    protected function renderDayName(string $dayAbbr, string $dayName, array $options):string {
-        $out = '';
-        // check if day is closed or not
-        $times = $this->times[$dayAbbr][0]['start'];
+    protected function renderDayName(string $dayAbbr, string $dayName, array $options, bool $combined = false):string {
 
-        // hide closed days and day is closed
-        if((!$options['showClosed']) && (!$times))
-            return $out; // return empty string
+        $out = '';
+
+        // TODO check
+
+        // check if day is closed or not
+        if(!$combined){
+            $times = $this->times[$dayAbbr][0]['start'];
+            // hide closed days and day is closed
+            if((!$options['showClosed']) && (!$times))
+             return $out; // return empty string
+        }
+
 
         // add surrounding tag for day name if set
         if ($options['daytag']) {
@@ -443,7 +449,6 @@ class OpeningHours extends WireData {
         } else {
             //remove all empty (closed) times
             $allOpeningHours = wire('sanitizer')->minArray($this->times);
-            //$allOpeningHours = self::arrayFilterRecursive($this->times);
         }
         $uniqueOpeningHours = array_unique($allOpeningHours, SORT_REGULAR);
         $nonUniqueOpeningHours = $allOpeningHours;
@@ -488,8 +493,10 @@ class OpeningHours extends WireData {
 
         }
 
+
+
         // add surrounding tag for day names if set
-        $out .= $this->renderDayName('', implode(', ', $dayNames), $options);
+        $out .= $this->renderDayName('', implode(', ', $dayNames), $options, true);
 
         $dayTimes = [];
         foreach ($arrays['opening_hours'] as $times) {
@@ -548,7 +555,6 @@ class OpeningHours extends WireData {
 
             // set opening item tag if set
             $out .= $options['itemtag'] ? '<' . $options['itemtag'] . ' class="oh-item">' : '';
-
             $out .= $this->timesPerDayString($arrays, $options);
 
             // set closing item tag if set
