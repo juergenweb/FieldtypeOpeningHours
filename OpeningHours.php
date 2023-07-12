@@ -308,6 +308,13 @@ class OpeningHours extends WireData {
      */
     protected function renderDayName(string $dayAbbr, string $dayName, array $options):string {
         $out = '';
+        // check if day is closed or not
+        $times = $this->times[$dayAbbr][0]['start'];
+
+        // hide closed days and day is closed
+        if((!$options['showClosed']) && (!$times))
+            return $out; // return empty string
+
         // add surrounding tag for day name if set
         if ($options['daytag']) {
             $out .= '<' . $options['daytag'];
@@ -397,6 +404,7 @@ class OpeningHours extends WireData {
             unset($days['ho']);
         }
 
+
         // loop over all weekdays
         foreach ($days as $day => $name) {
 
@@ -406,10 +414,6 @@ class OpeningHours extends WireData {
             // add surrounding tag for day name if set
             $dayName = $options['fulldayName'] ? $name[1] : $name[0];
             $out .= $this->renderDayName($day, $dayName, $options);
-
-            if ($options['daytag']) {
-                $out .= '</' . $options['daytag'] . '>';
-            }
 
             // render all times on that day
             $out .= ' ' . $this->renderDay($day, $options);
