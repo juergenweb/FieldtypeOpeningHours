@@ -43,10 +43,12 @@ tag or false to disable it)
 
 1) renderTable()
 2) renderDefinitionList
+3) renderDiv()
 
-These are pre-definded render methods to output the opening times as a table or a definition list.
-You can add 2 parameters to these functions: 
-a) The options array as first parameter to change some markup styling
+These are pre-definded render methods to output the opening times as a table, a definition list or using div containers.
+You can add 2 parameters to each of these functions: 
+
+a) The options array as first parameter to change some markup styling (fe adding custom classes)
 b) True of false as second parameter to render combinded days or not.
 
 For more detailed information an examples please read the docs.
