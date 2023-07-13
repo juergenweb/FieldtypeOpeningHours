@@ -71,3 +71,5 @@ input field will be displayed.
 
 This has also an impact of the display on the frontend: If the input field is hidden, then the opening times for
 Holidays on the frontend are also hidden.
+
+Thanks to wbmnfktr for his contribution!
