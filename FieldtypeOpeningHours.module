@@ -10,6 +10,7 @@ class FieldtypeOpeningHours extends Fieldtype
 
     protected string|null $timeformat = '%R'; // the php time format
     protected string|null|int $numberOftimes = 2; // the number of different opening times per day
+    protected string|int|bool $hideholiday = 0; // hide the Holiday input field
 
     public function __construct()
     {
@@ -17,6 +18,7 @@ class FieldtypeOpeningHours extends Fieldtype
         //set default configuration values if they are not present in the database
         $this->timeformat = '%R';
         $this->numberOftimes = 2;
+        $this->hideholiday = 0;
 
         parent::__construct();
     }
@@ -29,7 +31,7 @@ class FieldtypeOpeningHours extends Fieldtype
         return array(
             'title' => 'Openinghours',
             'summary' => 'Fieldtype that stores opening hours for each day of the week (including additional input for holidays)',
-            'version' => '1.0.3',
+            'version' => '1.1.0',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'installs' => 'InputfieldOpeningHours',
@@ -102,6 +104,7 @@ class FieldtypeOpeningHours extends Fieldtype
         // make configurationfields callable via API
         $times->numberOftimes = (string)$field->numberOftimes;
         $times->timeformat = (string)$field->timeformat;
+        $times->hideholiday = (int)$field->hideholiday;
         return $times;
     }
 
