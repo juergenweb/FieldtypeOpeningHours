@@ -12,6 +12,7 @@ class InputfieldOpeningHours extends Inputfield
         $this->set('numberOftimes', 2); // must have value (required)
         $this->set('timeformat', '%R');// must have value (required)
         $this->set('tableheader', '');// optional value (not required)
+        $this->set('hideholiday', 0);// optional value (not required)
         parent::__construct();
     }
 
@@ -23,7 +24,7 @@ class InputfieldOpeningHours extends Inputfield
         return array(
             'title' => 'Inputfield Opening Hours',
             'summary' => 'Renders an input field for entering opening hours',
-            'version' => '1.0.3',
+            'version' => '1.1.0',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'permanent' => false,
@@ -100,6 +101,13 @@ class InputfieldOpeningHours extends Inputfield
 
         foreach ($times as $dayAbbr => $daytimesArray) {
 
+            // show or hide Holiday input depending on the configuration settings
+            if(($this->hideholiday) && ($dayAbbr === 'ho')){
+                      $styleAttr = ' style="display:none"';
+            } else {
+                $styleAttr = '';
+            }
+
             //set checkbox status depending on first value in times array
             if ($daytimesArray[0]['start']) {
                 $checkboxStatus = ' checked';
@@ -108,7 +116,7 @@ class InputfieldOpeningHours extends Inputfield
                 $checkboxStatus = '';
                 $statusClass = 'closed';
             }
-            $output .= '<tr id="' . $name . '-row-' . $dayAbbr . '" class="day-row day-' . $dayAbbr . ' ' . $statusClass . '">';
+            $output .= '<tr id="' . $name . '-row-' . $dayAbbr . '" class="day-row day-' . $dayAbbr . ' ' . $statusClass . '"'.$styleAttr.'>';
             // Output name of the weekday
             $output .= '<td class="weekday"><span>' . OpeningHours::getWeekdays()[$dayAbbr][1] . '</span></td>';
             // Output checkbox switcher
@@ -240,7 +248,7 @@ class InputfieldOpeningHours extends Inputfield
         //we need to do this, because the number of values is variable - so extract only values that starts with fieldname_.
         $timeInputs = [];
         foreach ($input as $key => $value) {
-            if (substr($key, 0, strlen($name)) === $name) {
+            if (str_starts_with($key, $name)) {
                 $timeInputs[$key] = $value;
             }
         }
@@ -373,8 +381,18 @@ class InputfieldOpeningHours extends Inputfield
         $f->description = $this->_('Here you can overwrite (adapt) the tableheader text for the times column to fit your requirements (optional).');
         $f->notes = $this->_('This could be fe opening times, times of courses and so on - depending on what times you want to enter.');
         $f->columnWidth = 100;
-
         $inputfields->add($f);
+
+        // checkbox field to enable/disable the hint text for the max numbers of decimals on the form
+        $f = $this->modules->get('InputfieldCheckbox');
+        $f->attr('name+id', 'hideholiday');
+        $f->attr('checked', $this->hideholiday == '1' ? 'checked' : '');
+        $f->checkboxLabel = $this->_('Disable the input for Holidays');
+        $f->label = $this->_('Input for Holidays');
+        $f->description = $this->_('If checked, the input field for Holidays will not be displayed.');
+        $inputfields->append($f);
+
+
 
         /**  $docFieldset */
         $docFieldset = $this->wire('modules')->get('InputfieldFieldset');
@@ -419,7 +437,10 @@ class InputfieldOpeningHours extends Inputfield
         return [
             'numberOftimes',
             'timeformat',
-            'tableheader'
+            'tableheader',
+            'hideholiday'
         ];
     }
+
+
 }
