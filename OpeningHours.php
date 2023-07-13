@@ -12,12 +12,15 @@ class OpeningHours extends WireData {
     const DEFAULTTIMEFORMAT = '%R';
 
     public function __construct() {
-        //set default values
+
         parent::__construct();
 
+        //set default values if they are not present inside the database
         $this->set('times', json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true));
         $this->set('timeformat', self::DEFAULTTIMEFORMAT);
         $this->set('numberOftimes', '2');
+        $this->set('hideholiday', 0);
+
 
     }
 
@@ -294,8 +297,7 @@ class OpeningHours extends WireData {
             'timeseparator' => ', ',
             'timesuffix' => '',
             'showClosed' => true,
-            'closedText' => $this->_('closed'),
-            'showHoliday' => true
+            'closedText' => $this->_('closed')
         ];
     }
 
@@ -379,7 +381,6 @@ class OpeningHours extends WireData {
      * timeseparator: separator between multiple times (default: ,)
      * timesuffix: add text after timestring (default: '')
      * showClosed: true/false show closed days or not (default: true)
-     * showHoliday: true/false show Holiday or not (default: true)
      * closedText: overwrite the default text for closed days (default is closed)
      *
      * By default, all times will be rendered as an unordered list, until you change the tags
@@ -406,7 +407,7 @@ class OpeningHours extends WireData {
         $days = self::getWeekdays();
 
         // remove Holiday opening times according to the settings
-        if (!$options['showHoliday']) {
+        if ($this->hideholiday) {
             unset($days['ho']);
         }
 
@@ -483,7 +484,7 @@ class OpeningHours extends WireData {
         foreach ($arrays['days'] as $dayAbbr) {
             $add = true;
             if ($dayAbbr == 'ho') {
-                if (!$options['showHoliday']) {
+                if ($this->hideholiday) {
                     $add = false;
                 }
             }
