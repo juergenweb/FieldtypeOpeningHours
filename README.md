@@ -44,6 +44,7 @@ The format of the time can be set in date() and strftime() format.
 table header as "Opening hours". If you want to enter times for courses, you would probably add a table header like
 "Times of courses" or something like that. You can alter the heading of the 'times column' in the backend to fit your
 requirements (supports multi-language value).
+- **`Show/hide Holiday input`** You can select if you want to use the input field for Holiday or not (default is yes)
 
 ## Limitations
 
@@ -250,7 +251,6 @@ This is the base rendering method. You have a lot of options to change the outpu
   * timeseparator: separator between multiple times (default: ,)
   * timesuffix: add text after timestring (default: '')
   * showClosed: true/false show closed days or not (default: true)
-  * showHoliday: true/false show Holiday or not (default: true)
   * closedText: overwrite the default text for closed days (default is closed)
 
 All of these parameters can be set as an array inside the brackets of the method to overwrite the default parameters.
