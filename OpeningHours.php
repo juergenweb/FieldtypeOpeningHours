@@ -239,7 +239,7 @@ class OpeningHours extends WireData {
 
         // add time suffix if set
         if ($options['timesuffix']) {
-            $timesuffix = '<span class="oh-timesuffix">' . $options['timesuffix'] . '</span>';
+            $timesuffix = ' '.$options['timesuffix'];
         } else {
             $timesuffix = '';
         }
@@ -704,6 +704,28 @@ class OpeningHours extends WireData {
         $options['itemtag'] = 'tr';
         $options['daytag'] = 'td';
         $options['timetag'] = 'td';
+
+        if ($combined) {
+            return $this->renderCombinedDays($options);
+        } else {
+            return $this->render($options);
+        }
+
+    }
+
+    /**
+     * Render method to render all opening times using div and span container
+     * @param array $options - add some styling parameters
+     * @param bool $combined - render combined times (true) or not (false)
+     * @return string
+     */
+    public function renderDiv(array $options = [], bool $combined = false):string {
+
+        // set fixed values for the definition list
+        $options['wrappertag'] = 'div';
+        $options['itemtag'] = 'div';
+        $options['daytag'] = 'span';
+        $options['timetag'] = 'span';
 
         if ($combined) {
             return $this->renderCombinedDays($options);
