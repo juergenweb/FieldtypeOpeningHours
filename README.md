@@ -263,7 +263,7 @@ echo $page->fieldname->render();
 This renders all times as an unordered list like this:
 
 ```
-<div class="opening-list">
+<ul class="opening-list">
   <li class="time day-mo">Monday: 11:00-11:30 h; 12:00-13:00 h; 14:00-15:00 h</li>
   <li class="time day-tu">Tuesday: closed</li>
   <li class="time day-we">Wednesday: closed</li>
@@ -287,7 +287,7 @@ Explanation of the settings parameter:
 * timesuffix: A text that should be displayed after the time (default: none)
 * showClosed: true: closed days will be displayed; false: closed days will not be displayed (default: true)
 
-Please use these parameters as an array (see example below) inside the parenthesis.
+Please use these parameters as an array (see example below) inside the parenthesis to adapt the markup to your needs.
 
 ```
 echo $page->fieldname->render(['wrappertag' => 'div', 'itemtag' => 'div', 'daytag' => 'span', 'timetag' => 'span', 'wrapperclass' => 'opening-list', 'fulldayName' => true, 'timeseparator' => '; ',
@@ -306,6 +306,11 @@ This renders all times in a list like this:
 <div class="time day-su"><span class="day-su">Sunday:</span> <span class="time su"></span></div><div class="time day-ho"><span class="day-ho">Holiday:</span> <span class="time ho"></span></div>
 </div>
 ```
+
+Only to mention: There are also 3 pre-definded functions to render the opening times as a table, a definition list or
+using div and span containers. 
+
+You will find the description of these methods later on in these docs.
 
 #### 2) Render only the opening times of one specific day.
 
@@ -392,6 +397,22 @@ echo $page->fieldname->renderDefinitionList(['wrapperclass' = 'mydefinitionlist'
 ```
 
 The first parameter adds the CSS class "mydefinitionlist" to the dl tag and the second parameter forces the output of 
+combined times.
+
+##### renderDiv()
+This outputs all opening times using classical div and span containers.
+
+```
+echo $page->fieldname->renderDiv();
+```
+
+or with parameters:
+
+```
+echo $page->fieldname->renderDiv(['wrapperclass' = 'mycontainer'], true);
+```
+
+The first parameter adds the CSS class "mycontainer" to the wrapping div tag and the second parameter forces the output of
 combined times.
 
 
