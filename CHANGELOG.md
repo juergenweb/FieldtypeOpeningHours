@@ -50,7 +50,7 @@ definition list or simple inside div container.
 3 new methods:
 
 1) renderTable()
-2) renderDefinitionList
+2) renderDefinitionList()
 3) renderDiv()
 
 You can add 2 parameters to each of these functions inside the parenthesis: 
