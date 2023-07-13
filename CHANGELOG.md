@@ -21,7 +21,7 @@ This version comes with some feature requests from wbmnfktr from the PW-support 
 ### First request: More possibilities to influence the markup
 By default, the opening times will be rendered as an unordered list, which is fine in most cases. Until now, you had
 not a lot of possibilities to change the markup (fe to a table or a definition list).
-Of course, there was always the option to use the array output and to create the desired markup by yourself, but this is
+Of course, there is always the option to use the array output and to create the desired markup by yourself, but this is
 not very handy.
 To simplify these things I have extended the configuration options with a lot of different new parameters in the list
 below:
