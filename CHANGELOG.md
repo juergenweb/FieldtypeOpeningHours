@@ -16,14 +16,17 @@ should be stable.
 - Improve the code by adding union types, so it needs at least PHP 8.0 to work
 
 ## [1.1] - 2023-07-12
-This version comes with some feature requests from wbmnfktr from the PW-support forum. One of the wishes was 
-to extend the changeability of the mark-up to support other mark-ups too without manipulation of the arrays.
-The opening times should also be displayed fe as a table or a definition list.
+This version comes with some feature requests from wbmnfktr from the PW-support forum.
 
-So I have added a lot of new styling parameters, which can be uses via the rendering functions. All parameters
-marked with NEW are added to this version.
+### First request: More possibilities to influence the markup
+By default, the opening times will be rendered as an unordered list, which is fine in most cases. Until now, you had
+not a lot of possibilities to change the markup (fe to a table or a definition list).
+Of course, there was always the option to use the array output and create the desired markup by yourself, but this is
+not very handy.
+To simplify these things I have extended the configuration options with a lot of different new parameters in the list
+below:
 
-* wrappertag (NEW): set the tag for the outer container (default is ul, can be any other tag or false to disable it)
+* wrappertag (NEW): set the tag for the most outer container (default is ul, can be any other tag or false to disable it)
 * wrapperclass (NEW): add a CSS class to the wrapper tag (default: '')
 * itemtag (NEW): set the outer tag for the container containing the day opening times per day (default is li, can be any other
 tag or false to disable it)
@@ -34,21 +37,36 @@ tag or false to disable it)
 * daytimeseparator (NEW): add a string to separate the day name and the times or add false to remove it (default is :, set false to remove it)
 * fulldayName: show fullname (true) or dayname abbreviation (false) -> (default: false)
 * timeseparator: separator between multiple times (default: ,)
-* timesuffix: add text after timestring (default: '')
+* timesuffix: add text after time string (default: '')
 * showClosed: true/false show closed days or not (default: true)
-* showHoliday (NEW): true/false show Holiday or not (default: true)
-* closedText (NEW): overwrite the default text for closed days (default is closed)
+* closedText (NEW): overwrite the default text for closed days (default is "closed")
 
-2 new rendering methods added:
+By using these new parameters, it will be much easier to create the markup you want, without using and manipulating the 
+array value. The best way to understand these parameters is to change them and to see what has been changed ;-).
+
+To make it a further step easier: I have added 3 new rendering methods to output the opening times as a table, a
+definition list or simple inside div container. 
+
+3 new methods:
 
 1) renderTable()
 2) renderDefinitionList
 3) renderDiv()
 
-These are pre-definded render methods to output the opening times as a table, a definition list or using div containers.
-You can add 2 parameters to each of these functions: 
+You can add 2 parameters to each of these functions inside the parenthesis: 
 
-a) The options array as first parameter to change some markup styling (fe adding custom classes)
-b) True of false as second parameter to render combinded days or not.
+a) The options array as first parameter to change parameters as listed above (fe adding custom classes)
+b) True or false as second parameter to render combined days or not.
 
-For more detailed information an examples please read the docs.
+For more detailed information and to study the examples please read the docs.
+
+### Second request: Possibility to show/hide the Holiday input
+Not everyone wants to use the Holiday opening times. For this reason, I have added a new input field configuration
+to the input field (inside the input tab in the backend), where you can select if you want to display the Holiday input
+field or not.
+
+This configuration field is a checkbox: clicking the checkbox means to hide the Holiday input field, otherwise the
+input field will be displayed.
+
+This has also an impact of the display on the frontend: If the input field is hidden, then the opening times for
+Holidays on the frontend are also hidden.
