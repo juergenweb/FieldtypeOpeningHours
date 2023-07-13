@@ -56,6 +56,7 @@ definition list or simple inside div container.
 You can add 2 parameters to each of these functions inside the parenthesis: 
 
 a) The options array as first parameter to change parameters as listed above (fe adding custom classes)
+
 b) True or false as second parameter to render combined days or not.
 
 For more detailed information and to study the examples please read the docs.
