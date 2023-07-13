@@ -39,7 +39,7 @@ tag or false to disable it)
 * timeseparator: separator between multiple times (default: ,)
 * timesuffix: add text after time string (default: '')
 * showClosed: true/false show closed days or not (default: true)
-* closedText (NEW): overwrite the default text for closed days (default is "closed")
+* closedText: overwrite the default text for closed days (default is "closed")
 
 By using these new parameters, it will be much easier to create the markup you want, without using and manipulating the 
 array value. The best way to understand these parameters is to change them and to see what has been changed ;-).
