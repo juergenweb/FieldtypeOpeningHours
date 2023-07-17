@@ -220,11 +220,6 @@ class OpeningHours extends WireData {
      */
     public function renderDay(string $day, array $options = []):string {
 
-        $options = array_merge($this->defaultOptions(), $options);
-
-        $getTimes = $this->times[$day];
-        $times = [];
-
         $out = '';
 
         // add a wrapper tag for the times if set
@@ -238,26 +233,38 @@ class OpeningHours extends WireData {
             $out .= ' class="' . implode(' ', $timeClass) . '">';
         }
 
-        $numberOfTimes = count($getTimes);
+        if ($this->times) {
 
-        // add time suffix if set
-        if ($options['timesuffix']) {
-            $timesuffix = ' '.$options['timesuffix'];
-        } else {
-            $timesuffix = '';
-        }
-        if ($numberOfTimes > 1) { // multiple opening times per day
-            foreach ($getTimes as $value) {
-                $times[] = $value['start'] . ' - ' . $value['finish'] . $timesuffix;
-            }
-            $out .= implode($options['timeseparator'], $times);
-        } else { // single opening time or closed
-            if (array_filter($getTimes[0])) {
-                $times[] = $getTimes[0]['start'] . ' - ' . $getTimes[0]['finish'] . $timesuffix;
-                $out .= implode('-', $times);
-            } else {
-                $closed = ($options['showClosed']) ? $this->_('closed') : '';
-                $out .= $closed;
+            $options = array_merge($this->defaultOptions(), $options);
+
+            $getTimes = $this->times[$day];
+            $times = [];
+
+            if ((is_array($getTimes)) && (count($getTimes))) {
+
+                $numberOfTimes = count($getTimes);
+
+                // add time suffix if set
+                if ($options['timesuffix']) {
+                    $timesuffix = ' ' . $options['timesuffix'];
+                } else {
+                    $timesuffix = '';
+                }
+                if ($numberOfTimes > 1) { // multiple opening times per day
+                    foreach ($getTimes as $value) {
+                        $times[] = $value['start'] . ' - ' . $value['finish'] . $timesuffix;
+                    }
+                    $out .= implode($options['timeseparator'], $times);
+                } else { // single opening time or closed
+                    if (array_filter($getTimes[0])) {
+                        $times[] = $getTimes[0]['start'] . ' - ' . $getTimes[0]['finish'] . $timesuffix;
+                        $out .= implode('-', $times);
+                    } else {
+                        $closed = ($options['showClosed']) ? $this->_('closed') : '';
+                        $out .= $closed;
+                    }
+                }
+
             }
         }
 
@@ -315,11 +322,12 @@ class OpeningHours extends WireData {
         // TODO check
 
         // check if day is closed or not
-        if(!$combined){
+        if (!$combined) {
             $times = $this->times[$dayAbbr][0]['start'];
             // hide closed days and day is closed
-            if((!$options['showClosed']) && (!$times))
-             return $out; // return empty string
+            if ((!$options['showClosed']) && (!$times)) {
+                return $out;
+            } // return empty string
         }
 
 
@@ -493,7 +501,6 @@ class OpeningHours extends WireData {
             }
 
         }
-
 
 
         // add surrounding tag for day names if set
