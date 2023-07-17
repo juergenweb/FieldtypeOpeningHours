@@ -21,7 +21,6 @@ class OpeningHours extends WireData {
         $this->set('numberOftimes', '2');
         $this->set('hideholiday', 0);
 
-
     }
 
     /**
@@ -222,57 +221,61 @@ class OpeningHours extends WireData {
 
         $out = '';
 
-        // add a wrapper tag for the times if set
-        if ($options['timetag']) {
-            $out .= '<' . $options['timetag'];
-            $timeClass[] = 'oh-time';
-            $timeClass[] = $day;
-            if ($options['timeclass']) {
-                $timeClass[] = $options['timeclass'];
-            }
-            $out .= ' class="' . implode(' ', $timeClass) . '">';
-        }
+        // do not run in backend
+        if (strpos(wire('page')->url, wire('config')->urls->admin) !== 0) {
 
-        if ($this->times) {
-
-            $options = array_merge($this->defaultOptions(), $options);
-
-            $getTimes = $this->times[$day];
-            $times = [];
-
-            if ((is_array($getTimes)) && (count($getTimes))) {
-
-                $numberOfTimes = count($getTimes);
-
-                // add time suffix if set
-                if ($options['timesuffix']) {
-                    $timesuffix = ' ' . $options['timesuffix'];
-                } else {
-                    $timesuffix = '';
+            // add a wrapper tag for the times if set
+            if ($options['timetag']) {
+                $out .= '<' . $options['timetag'];
+                $timeClass[] = 'oh-time';
+                $timeClass[] = $day;
+                if ($options['timeclass']) {
+                    $timeClass[] = $options['timeclass'];
                 }
-                if ($numberOfTimes > 1) { // multiple opening times per day
-                    foreach ($getTimes as $value) {
-                        $times[] = $value['start'] . ' - ' . $value['finish'] . $timesuffix;
-                    }
-                    $out .= implode($options['timeseparator'], $times);
-                } else { // single opening time or closed
-                    if (array_filter($getTimes[0])) {
-                        $times[] = $getTimes[0]['start'] . ' - ' . $getTimes[0]['finish'] . $timesuffix;
-                        $out .= implode('-', $times);
+                $out .= ' class="' . implode(' ', $timeClass) . '">';
+            }
+
+            if ($this->times) {
+
+                $options = array_merge($this->defaultOptions(), $options);
+
+                //opening_hours-mo-0-start
+                $getTimes = $this->times[$day];
+                $times = [];
+
+                if ((is_array($getTimes)) && (count($getTimes))) {
+
+                    $numberOfTimes = count($getTimes);
+
+                    // add time suffix if set
+                    if ($options['timesuffix']) {
+                        $timesuffix = ' ' . $options['timesuffix'];
                     } else {
-                        $closed = ($options['showClosed']) ? $this->_('closed') : '';
-                        $out .= $closed;
+                        $timesuffix = '';
                     }
-                }
+                    if ($numberOfTimes > 1) { // multiple opening times per day
+                        foreach ($getTimes as $value) {
+                            $times[] = $value['start'] . ' - ' . $value['finish'] . $timesuffix;
+                        }
+                        $out .= implode($options['timeseparator'], $times);
+                    } else { // single opening time or closed
+                        if (array_filter($getTimes[0])) {
+                            $times[] = $getTimes[0]['start'] . ' - ' . $getTimes[0]['finish'] . $timesuffix;
+                            $out .= implode('-', $times);
+                        } else {
+                            $closed = ($options['showClosed']) ? $this->_('closed') : '';
+                            $out .= $closed;
+                        }
+                    }
 
+                }
+            }
+
+            // enter closing tag for the times if set
+            if ($options['timetag']) {
+                $out .= '</' . $options['timetag'] . '>';
             }
         }
-
-        // enter closing tag for the times if set
-        if ($options['timetag']) {
-            $out .= '</' . $options['timetag'] . '>';
-        }
-
         return $out;
     }
 
@@ -319,40 +322,43 @@ class OpeningHours extends WireData {
 
         $out = '';
 
-        // TODO check
-
-        // check if day is closed or not
-        if (!$combined) {
-            $times = $this->times[$dayAbbr][0]['start'];
-            // hide closed days and day is closed
-            if ((!$options['showClosed']) && (!$times)) {
-                return $out;
-            } // return empty string
-        }
+        // do not run in backend
+        if (strpos(wire('page')->url, wire('config')->urls->admin) !== 0) {
 
 
-        // add surrounding tag for day name if set
-        if ($options['daytag']) {
-            $out .= '<' . $options['daytag'];
-            if (!empty($dayAbbr)) {
-                $dayClass[] = 'oh-day day-' . $dayAbbr;
-            } else {
-                $dayClass[] = 'oh-day';
+            // check if day is closed or not
+            if (!$combined) {
+                $times = $this->times[$dayAbbr][0]['start'];
+                // hide closed days and day is closed
+                if ((!$options['showClosed']) && (!$times)) {
+                    return $out;
+                } // return empty string
             }
-            if ($options['dayclass']) {
-                $dayClass[] = $options['dayclass'];
+
+
+            // add surrounding tag for day name if set
+            if ($options['daytag']) {
+                $out .= '<' . $options['daytag'];
+                if (!empty($dayAbbr)) {
+                    $dayClass[] = 'oh-day day-' . $dayAbbr;
+                } else {
+                    $dayClass[] = 'oh-day';
+                }
+                if ($options['dayclass']) {
+                    $dayClass[] = $options['dayclass'];
+                }
+                $out .= ' class="' . implode(' ', $dayClass) . '">';
             }
-            $out .= ' class="' . implode(' ', $dayClass) . '">';
-        }
-        $out .= $dayName;
+            $out .= $dayName;
 
-        // add day-time-separator if set
-        if ($options['daytimeseparator']) {
-            $out .= $options['daytimeseparator'];
-        }
+            // add day-time-separator if set
+            if ($options['daytimeseparator']) {
+                $out .= $options['daytimeseparator'];
+            }
 
-        if ($options['daytag']) {
-            $out .= '</' . $options['daytag'] . '>';
+            if ($options['daytag']) {
+                $out .= '</' . $options['daytag'] . '>';
+            }
         }
         return $out;
     }
@@ -405,44 +411,47 @@ class OpeningHours extends WireData {
         // start creating the markup
         $out = '';
 
-        // add opening wrapper tag if set
-        if ($options['wrappertag']) {
-            $out .= '<' . $options['wrappertag'];
-            $out .= $options['wrapperclass'] ? ' class="' . $options['wrapperclass'] . '"' : '';
-            $out .= '>';
+        // do not run in backend
+        if (strpos(wire('page')->url, wire('config')->urls->admin) !== 0) {
+
+            // add opening wrapper tag if set
+            if ($options['wrappertag']) {
+                $out .= '<' . $options['wrappertag'];
+                $out .= $options['wrapperclass'] ? ' class="' . $options['wrapperclass'] . '"' : '';
+                $out .= '>';
+            }
+
+            $days = self::getWeekdays();
+
+            // remove Holiday opening times according to the settings
+            if ($this->hideholiday) {
+                unset($days['ho']);
+            }
+
+
+            // loop over all weekdays
+            foreach ($days as $day => $name) {
+
+                // set opening item tag if set
+                $out .= $options['itemtag'] ? '<' . $options['itemtag'] . ' class="time day-' . $day . '">' : '';
+
+                // add surrounding tag for day name if set
+                $dayName = $options['fulldayName'] ? $name[1] : $name[0];
+                $out .= $this->renderDayName($day, $dayName, $options);
+
+                // render all times on that day
+                $out .= ' ' . $this->renderDay($day, $options);
+
+                // set closing item tag if set
+                $out .= $options['itemtag'] ? '</' . $options['itemtag'] . '>' : '';
+
+            }
+
+            // add closing wrapper tag if set
+            if ($options['wrappertag']) {
+                $out .= '</' . $options['wrappertag'] . '>';
+            }
         }
-
-        $days = self::getWeekdays();
-
-        // remove Holiday opening times according to the settings
-        if ($this->hideholiday) {
-            unset($days['ho']);
-        }
-
-
-        // loop over all weekdays
-        foreach ($days as $day => $name) {
-
-            // set opening item tag if set
-            $out .= $options['itemtag'] ? '<' . $options['itemtag'] . ' class="time day-' . $day . '">' : '';
-
-            // add surrounding tag for day name if set
-            $dayName = $options['fulldayName'] ? $name[1] : $name[0];
-            $out .= $this->renderDayName($day, $dayName, $options);
-
-            // render all times on that day
-            $out .= ' ' . $this->renderDay($day, $options);
-
-            // set closing item tag if set
-            $out .= $options['itemtag'] ? '</' . $options['itemtag'] . '>' : '';
-
-        }
-
-        // add closing wrapper tag if set
-        if ($options['wrappertag']) {
-            $out .= '</' . $options['wrappertag'] . '>';
-        }
-
         return $out;
     }
 
