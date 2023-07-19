@@ -73,3 +73,8 @@ This has also an impact of the display on the frontend: If the input field is hi
 Holidays on the frontend are also hidden.
 
 Thanks to wbmnfktr for his contribution!
+
+## [1.2] - 2023-07-19
+This version adds another feature request from Matze: Check if there is at least one time set
+
+Instead of creating a method which returns true or false, I have created the new method getNumberOfTimes() which returns the number how many times were set. So the return type will be an integer. If there are no times set - it will return 0. This number can be used to check whether times are set or not.
