@@ -227,7 +227,20 @@ $page->setOutputFormatting(false);
 $page->setOutputFormatting(true);
 ```
 
+### getNumberOfTimes() method
+If you want to output how many times were set, you can use this method which returns the number of times as set in the backend.
 
+```
+echo $page->nameOfMyField->getNumberOfTimes(); // returns fe 5
+```
+
+You can use this method if you want to check if there has been at least on time set.
+
+```
+if($page->nameOfMyField->getNumberOfTimes()){
+    echo "There is at least one opening time set";
+} 
+```
 ### Render methods
 The render methods return a string for direct output inside templates. You can use these methods if they satisfy your
 needs. If you want to customize your markup it will be better to use the array methods above and create the markup by
