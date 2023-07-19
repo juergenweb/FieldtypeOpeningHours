@@ -622,6 +622,27 @@ class OpeningHours extends WireData {
     }
 
     /**
+     * Return the number of how many times were set
+     * @return int
+     */
+    public function getNumberOfTimes()
+    {
+        $times = $this->times;
+        if ($this->hideholiday) {
+            unset($times['ho']);
+        }
+        $timesPerDay = [];
+        foreach($times as $key => $day){
+            foreach($day as $dayTime){
+                if(array_filter($dayTime)){
+                    $timesPerDay[] = $dayTime;
+                }
+            }
+        }
+        return count($timesPerDay);
+    }
+
+    /**
      * Method to create an array of combined opening hours for usage in json LD markup of schema.org
      * Based on https://schema.org/openingHours
      * @return array fe Array ( [0] => Mo,Tu,We 08:00-12:00 [1] => Mo,Th 13:00-18:00 [2] => Th 08:00-11:00 )
