@@ -535,7 +535,7 @@ class OpeningHours extends WireData {
             }
             $out .= ' class="' . implode(' ', $timeClass) . '">';
         }
-        $out .= implode(', ', $dayTimes);
+        $out .= '<span class="op-time">'.implode(', ', $dayTimes).'</span>';
 
         // add closing surrounding tag if set
         if ($options['timetag']) {
