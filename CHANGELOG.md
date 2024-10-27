@@ -78,3 +78,13 @@ Thanks to wbmnfktr for his contribution!
 This version adds another feature request from Matze: Check if there is at least one time set
 
 Instead of creating a method which returns true or false, I have created the new method getNumberOfTimes() which returns the number how many times were set. So the return type will be an integer. If there are no times set - it will return 0. This number can be used to check whether times are set or not.
+
+## 2024-10-27
+
+- **Support for RockLanguage added**
+
+If you have installed the [RockLanguage](https://processwire.com/modules/rock-language/) module by Bernhard Baumrock, this module now supports the sync of the language files. This means that you do not have to take care about new translations after you have downloaded a new version of FieldtypeOpeningHours. All new translations (at the moment only German translations) will be synced with your your ProcessWire language files. 
+
+Please note: The sync will only take place if you are logged in as Superuser and $config->debug is set to true (take a look at the [docs](https://www.baumrock.com/en/processwire/modules/rocklanguage/docs/)).
+
+The (old) CSV files usage is still supported.
