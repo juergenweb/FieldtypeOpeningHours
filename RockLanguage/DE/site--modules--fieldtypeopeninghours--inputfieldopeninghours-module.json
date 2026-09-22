@@ -1,0 +1,189 @@
+{
+    "file": "site\/modules\/FieldtypeOpeningHours\/InputfieldOpeningHours.module",
+    "textdomain": "site--modules--fieldtypeopeninghours--inputfieldopeninghours-module",
+    "translations": {
+        "2f43b42fd833d1e77420a8dae7419000": {
+            "text": "="
+        },
+        "ec211f7c20af43e742bf2570c3cb84f9": {
+            "text": "Hinzuf\u00fcgen"
+        },
+        "1063e38cb53d94d386f21227fcd84717": {
+            "text": "Entfernen"
+        },
+        "6a8253e437d79f83e183fbf85b9ae53d": {
+            "text": "Ausnahme entfernen"
+        },
+        "b021df6aac4654c454f46c77646e745f": {
+            "text": "Bezeichnung"
+        },
+        "5f0ca3e8b37b653d3bb4b9898d7d6317": {
+            "text": "Datum"
+        },
+        "5da618e8e4b89c66fe86e32cdafde142": {
+            "text": "von"
+        },
+        "e12167aa0a7698e6ebc92b4ce3909b53": {
+            "text": "bis"
+        },
+        "104c4acb9ce11defbfb59ce6df6e41e9": {
+            "text": "Den ganzen Tag geschlossen"
+        },
+        "5d9e4a318e3b45e3b4465fde3093bb88": {
+            "text": "Jedes Jahr wiederholen"
+        },
+        "6a7e73161603d87b26a8eac49dab0a9c": {
+            "text": "Stunden"
+        },
+        "2467a444234ce1364a3e888233323005": {
+            "text": "z.B. Neujahrstag"
+        },
+        "bc51c8dc11ac2c65ffe7a330587a0194": {
+            "text": "Wochentag"
+        },
+        "ec53a8c4f07baed5d8825072c89799be": {
+            "text": "="
+        },
+        "80a0c205cd57b22fca7f174253870300": {
+            "text": "\u00d6ffnungszeiten"
+        },
+        "e4fe4d646d982ef50ea41957dff340b2": {
+            "text": "Kopieren nach ..."
+        },
+        "f1b35e4a37adf0a578ad6330171ff61a": {
+            "text": "Die Zeiten dieses Tages kopieren nach:"
+        },
+        "9639e32cab248434a17ab32237cb3b71": {
+            "text": "Zustimmen"
+        },
+        "ea4788705e6873b424c65e91c2846b19": {
+            "text": "Abbrechen"
+        },
+        "c65b0435985170b1c1c37bf8da48cd6e": {
+            "text": "Ausnahmen (Feiertage, Betriebsurlaub,...)"
+        },
+        "e24b759a72d8ff5e4549238125bb1725": {
+            "text": "F\u00fcgen Sie einzelne Tage (z. B. Neujahr) oder Zeitr\u00e4ume (z. B. Betriebsurlaub) hinzu, die den oben festgelegten regul\u00e4ren Wochenplan \u00fcberschreiben sollen.\nEine Ausnahme kann den Standort an diesem Tag bzw. in diesem Zeitraum entweder vollst\u00e4ndig schlie\u00dfen oder verk\u00fcrzte \u00d6ffnungszeiten festlegen.\nAktivieren Sie \u201eJedes Jahr wiederholen\u201c f\u00fcr Ausnahmen, die immer auf dasselbe Datum fallen (z. B. gesetzliche Feiertage). Diese werden niemals automatisch entfernt.\nAbgelaufene, nicht wiederkehrende Ausnahmen werden automatisch entfernt, sobald ihr Enddatum in der Vergangenheit liegt."
+        },
+        "faba89c31e63b14b609e6998d4158bfc": {
+            "text": "Unvollst\u00e4ndige Zeitangaben, bei denen nur eine Start- oder Endzeit angegeben war, wurden entfernt."
+        },
+        "c650f334d8b8717dc1da5e4c27528a2d": {
+            "text": "Am %s sind Start- und Endzeit identisch. Bitte legen Sie unterschiedliche Zeiten fest."
+        },
+        "0b7ccbde050b20d849f10fa61db68bfc": {
+            "text": "Am %s liegt die Startzeit nach der Endzeit. Wenn die Endzeit am n\u00e4chsten Tag liegt, ist dies in Ordnung."
+        },
+        "219370803c98a510a36749dda20cdf6d": {
+            "text": "Am %1$s \u00fcberschneidet sich der Zeitraum %2$s\u2013%3$s mit dem Zeitraum %4$s\u2013%5$s."
+        },
+        "501fa53d947ff2ba6ed392ae5e528212": {
+            "text": "Ein Wert war keine g\u00fcltige Zeitangabe und wurde daher gel\u00f6scht."
+        },
+        "cfef423e90862e51290e3579d59da7ad": {
+            "text": "Ausnahme #%1$s: Das Enddatum (%2$s) liegt vor dem Startdatum (%3$s). Es wurde auf das Startdatum zur\u00fcckgesetzt. Bitte korrigieren Sie das Datum."
+        },
+        "5d5c5a349c1172d3792416855bd9fd0f": {
+            "text": "Ausnahme #%1$s, Zeit #%2$s: Die Endzeit (%3$s) liegt vor der Startzeit (%4$s). Diese Zeitangabe wurde entfernt. Bitte korrigieren Sie sie."
+        },
+        "1fcfbfea8e69ea502624250ab1273377": {
+            "text": "Ausnahme #%1$s, Zeit #%2$s: Bitte geben Sie sowohl die Start- als auch die Endzeit ein."
+        },
+        "38d092717fd3c2673a741a99d25fcd4d": {
+            "text": "Ausnahme #%s: Bitte geben Sie unter \u201e\u00d6ffnungszeiten\u201c mindestens einen Zeitraum ein oder w\u00e4hlen Sie \u201eGanzt\u00e4gig geschlossen\u201c."
+        },
+        "c604d0eae3d1c5a0d16b41de0c95e87b": {
+            "text": "Ausnahme #%1$s (%2$s bis %3$s) \u00fcberschneidet sich mit Ausnahme #%4$s (%5$s bis %6$s). Nur die erste der beiden Ausnahmen (in der oben angezeigten Reihenfolge) wird f\u00fcr die \u00fcberschneidenden Tage tats\u00e4chlich angewendet."
+        },
+        "11404b07f755b1713b0269da452a11c2": {
+            "text": "Anzahl der Zeiten pro Tag"
+        },
+        "2c9657d5f8d7aba4cd7d740513e7dc1b": {
+            "text": "Bitte geben Sie an, wie viele verschiedene Zeitr\u00e4ume pro Tag zul\u00e4ssig sind."
+        },
+        "c8c8d01bb37f303251299a6a2a2471df": {
+            "text": "Zum Beispiel bedeutet \u201e2\u201c, dass Sie zwei verschiedene Zeitr\u00e4ume pro Tag eingeben k\u00f6nnen. Es sind maximal 5 verschiedene Zeitr\u00e4ume pro Tag m\u00f6glich."
+        },
+        "06002dfac324f7ff7eb49a71ec5bd340": {
+            "text": "Zeitformat im Frontend"
+        },
+        "0e9709308af45f312163172e1ab67095": {
+            "text": "Bitte geben Sie das Zeitformat an, in dem die Uhrzeiten im Frontend angezeigt werden sollen. Verwenden Sie die Syntax von date() oder sprintf()."
+        },
+        "4fbe90c69f315499f57e4c95d5d9ade5": {
+            "text": "Beispielsweise wird bei einem Zeitformat von %s die Uhrzeit als 08:00 angezeigt, w\u00e4hrend ein Zeitformat von %s als 08:00 AM dargestellt wird. Weitere Beispiele finden Sie unter %s oder %s."
+        },
+        "265a22b5c1436902fe6a2cceaccc6b4b": {
+            "text": "Tabellen\u00fcberschrift f\u00fcr die Spalte \u201eZeiten\u201c im Backend"
+        },
+        "a70a57b5e48d563191da61d6c3db17fd": {
+            "text": "Hier k\u00f6nnen Sie den Tabellen\u00fcberschriftstext f\u00fcr die Spalte \u201eZeiten\u201c nach Ihren Anforderungen \u00fcberschreiben bzw. anpassen (optional)."
+        },
+        "3d73e8a19eabc56142f2481e5413055f": {
+            "text": "Dies k\u00f6nnen beispielsweise \u00d6ffnungszeiten, Kurszeiten usw. sein \u2013 je nachdem, welche Zeiten Sie eingeben m\u00f6chten."
+        },
+        "263bb2239547744d206760d62828c221": {
+            "text": "Eingabe f\u00fcr Feiertage deaktivieren"
+        },
+        "ba4af95ce183e74687f79b6e6787fd68": {
+            "text": "Eingabe f\u00fcr Feiertage"
+        },
+        "76ff1e2db2ccce0fc6180c39fae31fc3": {
+            "text": "Wenn diese Option aktiviert ist, wird das Eingabefeld f\u00fcr Feiertage nicht angezeigt."
+        },
+        "8152e92924892023d55b62a942636981": {
+            "text": "Kurzanleitung"
+        },
+        "acacd0d35efda7f412f12ef68bb829b9": {
+            "text": "Dies ist eine kurze und einfache Anleitung, wie Sie die \u00d6ffnungszeiten auf Ihrer Website ausgeben k\u00f6nnen."
+        },
+        "10bc314c8ce765c66d24c6bc9be3ff7c": {
+            "text": "Einfachste Integration"
+        },
+        "301c467549592729cb921c7411833b50": {
+            "text": "F\u00fcgen Sie diesen Code in Ihr Template ein, an der Stelle, an der die \u00d6ffnungszeiten angezeigt werden sollen."
+        },
+        "8c86a3e920dbaec2f405472d9c8f3173": {
+            "text": "In diesem Fall werden die \u00d6ffnungszeiten f\u00fcr jeden Tag als ungeordnete Liste angezeigt."
+        },
+        "5dc6abce464f66e376b71d5f88e1e3ab": {
+            "text": "Tage mit gleichen \u00d6ffnungszeiten zusammenfassen"
+        },
+        "9f8f2e26677465d6c97e605bf9bf1163": {
+            "text": "Nur die \u00d6ffnungszeiten eines bestimmten Tages anzeigen"
+        },
+        "a8fdbaa5145c59e8bca525305714acb6": {
+            "text": "Wenn Sie die \u00d6ffnungszeiten f\u00fcr einen bestimmten Tag (z. B. Montag) anzeigen m\u00f6chten, k\u00f6nnen Sie dies folgenderma\u00dfen tun:"
+        },
+        "9b118fe81d91a994f993c02232dabd3d": {
+            "text": "Dadurch werden die \u00d6ffnungszeiten f\u00fcr diesen Tag als Zeichenfolge ausgegeben."
+        },
+        "18028224fd09842ef12b4b06192706af": {
+            "text": "Ausnahmen (Feiertage, Betriebsurlaub, verk\u00fcrzte \u00d6ffnungszeiten)"
+        },
+        "6e6f12c25ce912fa58b402ba8a2ab9d7": {
+            "text": "Zus\u00e4tzlich zum oben festgelegten regul\u00e4ren Wochenplan k\u00f6nnen Sie Ausnahmen hinzuf\u00fcgen (z. B. Feiertage, Betriebsurlaub oder verk\u00fcrzte \u00d6ffnungszeiten an einem bestimmten Tag oder in einem bestimmten Zeitraum). Ausnahmen k\u00f6nnen den ganzen Tag geschlossen sein, eigene \u00d6ffnungszeiten haben und optional jedes Jahr wiederholt werden."
+        },
+        "83d3572a5d1c30fc54fc8d77f02ddee5": {
+            "text": "Dadurch werden alle Ausnahmen, die im aktuellen Jahr aktiv sind, als ungeordnete Liste ausgegeben."
+        },
+        "7afe67947579b6c245b9cf592fd0fd48": {
+            "text": "Es gibt au\u00dferdem renderExceptionsForWeek() und renderExceptionsForMonth(), um nur die Ausnahmen anzuzeigen, die in der aktuellen Woche bzw. im aktuellen Monat aktiv sind."
+        },
+        "133969ddc1739678250ed8af7a509bdf": {
+            "text": "Weitere aufwendigere Ausgabemethoden finden Sie in der Beschreibung dieses Moduls auf %s."
+        },
+        "ed0a16de69298a78317c7978a3f84f31": {
+            "text": "Ausnahme hinzuf\u00fcgen"
+        },
+        "c21f969b5f03d33d43e04f8f136e7682": {
+            "text": "Standard"
+        },
+        "0c26e646fa11c3ab39ff3dac9f9dad82": {
+            "text": "Pro Tag sind maximal %s Zeitr\u00e4ume zul\u00e4ssig."
+        },
+        "a1e37bd79000e1ced2672e7932d82a24": {
+            "text": "Pro Tag ist nur ein Zeitraum zul\u00e4ssig."
+        }
+    }
+}

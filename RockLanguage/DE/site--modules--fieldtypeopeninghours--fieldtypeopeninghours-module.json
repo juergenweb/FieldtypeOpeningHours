@@ -1,0 +1,9 @@
+{
+    "file": "site\/modules\/FieldtypeOpeningHours\/FieldtypeOpeningHours.module",
+    "textdomain": "site--modules--fieldtypeopeninghours--fieldtypeopeninghours-module",
+    "translations": {
+        "6a407ae791665b3d082b66ee255fdb31": {
+            "text": "Erwartet eine Instanz von OpeningHours"
+        }
+    }
+}

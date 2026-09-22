@@ -1,0 +1,57 @@
+{
+    "file": "site\/modules\/FieldtypeOpeningHours\/OpeningHours.php",
+    "textdomain": "site--modules--fieldtypeopeninghours--openinghours-php",
+    "translations": {
+        "349e686330723975502e9ef4f939a5ac": {
+            "text": "geschlossen"
+        },
+        "c08df9bb5fb44242a6291b1eee5d09ad": {
+            "text": "="
+        },
+        "6f8522e0610541f1ef215a22ffa66ff6": {
+            "text": "Montag"
+        },
+        "080502c4fa636ac639bf42b6d2ba01d7": {
+            "text": "Di"
+        },
+        "5792315f09a5d54fb7e3d066672b507f": {
+            "text": "Dienstag"
+        },
+        "485c47a81eb6e3998ec05aca48eda184": {
+            "text": "Mi"
+        },
+        "796c163589f295373e171842f37265d5": {
+            "text": "Mittwoch"
+        },
+        "eeeb9a8eb45dd351d9ec0eb4acce66ce": {
+            "text": "Do"
+        },
+        "78ae6f0cd191d25147e252dc54768238": {
+            "text": "Donnerstag"
+        },
+        "fa717ba17306cd76900510df8ac8013e": {
+            "text": "="
+        },
+        "c33b138a163847cdb6caeeb7c9a126b4": {
+            "text": "Freitag"
+        },
+        "e55bb1ae59b6a64858a85a2f48c53036": {
+            "text": "="
+        },
+        "8b7051187b9191cdcdae6ed5a10e5adc": {
+            "text": "Samstag"
+        },
+        "f72c915d8f575a5c0999b5f37b6d99b7": {
+            "text": "So"
+        },
+        "9d1a0949c39e66a0cd65240bc0ac9177": {
+            "text": "Sonntag"
+        },
+        "71aafd38484f3160708c6a6d2d5f736b": {
+            "text": "Fe"
+        },
+        "84b8343a7057dcab0a7c7acb6dd4862e": {
+            "text": "Feiertag"
+        }
+    }
+}
