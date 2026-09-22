@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace ProcessWire;
@@ -7,11 +8,13 @@ use Exception;
 
 class FieldtypeOpeningHours extends Fieldtype
 {
-
     protected string|null $timeformat = '%R'; // the php time format
     protected string|null|int $numberOftimes = 2; // the number of different opening times per day
     protected string|int|bool $hideholiday = 0; // hide the Holiday input field
 
+    /**
+     * Include the OpeningHours value class and set the module's default configuration values.
+     */
     public function __construct()
     {
         include_once(__DIR__ . '/OpeningHours.php');
@@ -26,12 +29,12 @@ class FieldtypeOpeningHours extends Fieldtype
     /**
      * @return array
      */
-    public static function getModuleInfo():array
+    public static function getModuleInfo(): array
     {
         return array(
             'title' => 'Openinghours',
             'summary' => 'Fieldtype that stores opening hours for each day of the week (including additional input for holidays)',
-            'version' => '1.2.0',
+            'version' => '2.0.0',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'installs' => 'InputfieldOpeningHours',
@@ -39,8 +42,119 @@ class FieldtypeOpeningHours extends Fieldtype
                 'PHP>=8.0.0',
                 'ProcessWire>=3.0.181'
             ],
-            'author' => 'Jürgen Kern'
+            'author' => 'Jürgen Kern',
+            // needs to run on every request so the LazyCron hook in init() is actually
+            // registered and gets a chance to fire
+            'autoload' => true,
         );
+    }
+
+    /**
+     * The database schema version this version of the module code expects. Bump this
+     * whenever getDatabaseSchema() gains/changes a column, and add the corresponding
+     * column check to ensureSchemaUpToDate() below.
+     */
+    public const SCHEMA_VERSION = 1;
+
+    /**
+     * Register the daily cleanup of expired, non-recurring exceptions (holidays/company
+     * vacation etc.). Exceptions are entered directly on the page-edit screen and stored
+     * per page (as part of this field's own value on each page), so this walks every page
+     * using this field rather than the field itself.
+     *
+     * Also self-heals the database schema of every existing field of this type on every
+     * request (this module is autoload, so init() always runs) - relying on ProcessWire's
+     * ___upgrade() hook alone turned out to be unreliable (it only fires once ProcessWire
+     * notices the version bump, which depends on Setup > Modules being refreshed and isn't
+     * guaranteed on every setup/host). This way, a new column (fe 'exceptions', added for
+     * per-page exceptions storage) gets added automatically the moment this code runs,
+     * without requiring the user to manually resave each field under Setup > Fields.
+     * @return void
+     */
+    public function init(): void
+    {
+        $this->addHookAfter('LazyCron::everyDay', $this, 'cleanupExpiredExceptions');
+        $this->ensureSchemaUpToDate();
+    }
+
+    /**
+     * Make sure every existing field of this type has the database columns this version of
+     * the module expects, adding any that are missing. Cheap to call on every request: the
+     * already-applied schema version is remembered in this module's own config data, so the
+     * (potentially several) ALTER TABLE checks below only actually run once per upgrade.
+     * @return void
+     */
+    protected function ensureSchemaUpToDate(): void
+    {
+        $modules = $this->wire('modules');
+        $configData = $modules->getModuleConfigData($this);
+        $installedSchemaVersion = (int)($configData['schemaVersion'] ?? 0);
+        if ($installedSchemaVersion >= self::SCHEMA_VERSION) {
+            return;
+        }
+        foreach ($this->wire('fields')->find("type=FieldtypeOpeningHours") as $field) {
+            /** @var Field $field */
+            $this->ensureColumnExists($field, 'exceptions', 'TEXT DEFAULT NULL');
+        }
+        $configData['schemaVersion'] = self::SCHEMA_VERSION;
+        $modules->saveModuleConfigData($this, $configData);
+    }
+
+    /**
+     * Add a column to a field's database table if it doesn't already exist there.
+     * @param Field $field
+     * @param string $column
+     * @param string $definition fe "TEXT DEFAULT NULL" - the raw SQL column definition
+     * @return void
+     */
+    protected function ensureColumnExists(Field $field, string $column, string $definition): void
+    {
+        $database = $this->wire('database');
+        $table = $field->getTable();
+        $existingColumns = $database->query("SHOW COLUMNS FROM `$table`")->fetchAll(\PDO::FETCH_COLUMN);
+        if (in_array($column, $existingColumns, true)) {
+            return;
+        }
+        $database->exec("ALTER TABLE `$table` ADD `$column` $definition");
+    }
+
+    /**
+     * Remove expired, non-recurring exceptions from every page using this field type and
+     * persist the change. Recurring exceptions (fe yearly holidays) are never removed here.
+     * @param HookEvent $event
+     * @return void
+     */
+    public function cleanupExpiredExceptions(HookEvent $event): void
+    {
+        foreach ($this->wire('fields')->find("type=FieldtypeOpeningHours") as $field) {
+            /** @var Field $field */
+            $templates = $field->getTemplates();
+            if (!$templates || !count($templates)) {
+                continue;
+            }
+            $templateNames = [];
+            foreach ($templates as $template) {
+                $templateNames[] = $template->name;
+            }
+            $selector = 'template=' . implode('|', $templateNames) . ', include=all';
+            foreach ($this->wire('pages')->find($selector) as $page) {
+                /** @var Page $page */
+                $value = $page->getUnformatted($field->name);
+                if (!$value instanceof OpeningHours) {
+                    continue;
+                }
+                $exceptions = $value->exceptions ?: [];
+                if (!count($exceptions)) {
+                    continue;
+                }
+                $active = OpeningHours::filterActiveExceptions($exceptions);
+                if (count($active) === count($exceptions)) {
+                    continue; // nothing expired, no need to save
+                }
+                $value->set('exceptions', array_values($active));
+                $page->save($field->name);
+            }
+        }
     }
 
     /**
@@ -49,7 +163,7 @@ class FieldtypeOpeningHours extends Fieldtype
      * @return string|_Module|Module
      * @throws WirePermissionException link the core inputfieldmarkup to this fieldtype and return the associated Inputfield
      */
-    public function getInputfield(Page $page, Field $field):_Module|Module|string
+    public function getInputfield(Page $page, Field $field): _Module|Module|string
     {
         return $this->modules->get('InputfieldOpeningHours');
     }
@@ -77,7 +191,7 @@ class FieldtypeOpeningHours extends Fieldtype
             $value = $this->getBlankValue($page, $field);
         }
         // Value is instance of OpeningHours -> track changes
-        if ($value->isChanged('times')) {
+        if ($value->isChanged('times') || $value->isChanged('exceptions')) {
             $page->trackChange($field->name);
         }
         return $value;
@@ -98,13 +212,24 @@ class FieldtypeOpeningHours extends Fieldtype
         // instantiate a new object
         $times = $this->getBlankValue($page, $field);
         // populate the times object -> convert it from json to array
-        $daytimes = $value['times'] ? json_decode($value['times'],
-            true) : json_decode(file_get_contents(__DIR__ . '/defaultData.json'), true);
+        if ($value['times']) {
+            $daytimes = json_decode($value['times'], true);
+        } else {
+            $defaultDataFile = __DIR__ . '/defaultData.json';
+            $daytimes = is_readable($defaultDataFile) ? json_decode(file_get_contents($defaultDataFile), true) : [];
+        }
         $times->times = $daytimes;
         // make configurationfields callable via API
         $times->numberOftimes = (string)$field->numberOftimes;
         $times->timeformat = (string)$field->timeformat;
         $times->hideholiday = (int)$field->hideholiday;
+        // exceptions (holidays/company vacation) are entered directly on the page-edit
+        // screen (below the weekly schedule) and stored per page - decode the page's own
+        // value here so they're available via the API (fe $page->openinghours->getStatusForDate()).
+        // Also filter out expired, non-recurring ones so a page that's viewed/formatted
+        // between two LazyCron runs never sees stale exceptions.
+        $exceptions = !empty($value['exceptions']) ? json_decode((string)$value['exceptions'], true) : [];
+        $times->exceptions = OpeningHours::filterActiveExceptions(is_array($exceptions) ? $exceptions : []);
         return $times;
     }
 
@@ -117,29 +242,39 @@ class FieldtypeOpeningHours extends Fieldtype
      */
     public function formatValue(Page $page, Field $field, $value)
     {
-        $times = $value;
-        if ($times) {
-            if (isset(wire('user')->language)) //check for multilanguage
-            {
-                $userLang = wire('user')->language->id;
-                foreach (wire('languages') as $language) {
-                    if ($language->isDefault()) {
-                        $this->timeformat = $field->timeformat;
-                    } elseif ($language->id == $userLang) {
-                        $this->timeformat = $field->get("timeformat$userLang");
+        if (!$value) {
+            return null;
+        }
+        // clone the value so we never mutate the original (unformatted) object that is
+        // cached on the page - array_walk_recursive() below writes into it by reference
+        $times = clone $value;
+
+        // default to the field's own (default language) timeformat setting
+        $timeformat = (string)$field->timeformat;
+
+        // check for multilanguage
+        if (isset(wire('user')->language)) {
+            $userLang = wire('user')->language->id;
+            foreach (wire('languages') as $language) {
+                if (!$language->isDefault() && $language->id == $userLang) {
+                    $languageFormat = $field->get("timeformat$userLang");
+                    if ($languageFormat) {
+                        $timeformat = (string)$languageFormat;
                     }
+                    break;
                 }
             }
-            array_walk_recursive($times, function (&$value, $key) {
-                if (($key === 'start') || ($key === 'finish')) {
-                    if ($value) {
-                        $value = OpeningHours::formatTimestring($value, $this->timeformat);
-                    }
-                }
-            });
-            return $times;
         }
-        return null;
+
+        array_walk_recursive($times, function (&$value, $key) use ($timeformat) {
+            if (($key === 'start') || ($key === 'finish')) {
+                if ($value) {
+                    $value = OpeningHours::formatTimestring($value, $timeformat);
+                }
+            }
+        });
+
+        return $times;
     }
 
     /**
@@ -166,7 +301,7 @@ class FieldtypeOpeningHours extends Fieldtype
      * @return array
      * @throws Exception
      */
-    public function ___sleepValue(Page $page, Field $field, $value):array
+    public function ___sleepValue(Page $page, Field $field, $value): array
     {
         $value = parent::___sleepValue($page, $field, $value);
         // throw error if value is not of the right type
@@ -174,25 +309,40 @@ class FieldtypeOpeningHours extends Fieldtype
             throw new Exception($this->_('Expecting an instance of OpeningHours'));
         }
 
-        $timesValues = $value->data['times'];
+        // use the magic getter for the 'times' key (WireData::$data is protected and not
+        // accessible from here - $value->data['times'] silently resolves to null, which
+        // then fails the array type check in createMultidimArray() under strict_types)
+        $timesValues = $value->times;
         $timesValues = OpeningHours::createMultidimArray($timesValues);
         //create json string for storage in the DB
-        $value = json_encode($timesValues);
+        $timesJson = json_encode($timesValues);
+
+        // exceptions (holidays/company vacation, reduced hours) entered on the page-edit
+        // screen, stored per page as their own JSON column
+        $exceptionsValues = $value->exceptions ?: [];
+        $exceptionsJson = json_encode(array_values($exceptionsValues));
 
         return array(
-            'times' => $value,
+            // 'data' is a mandatory column enforced by Fieldtype::___createField() in ProcessWire
+            // core (it throws a WireException if missing from the schema), but it is not used for
+            // storage here. It must still be returned with a value, otherwise savePageField()'s
+            // INSERT never sets it and the (NOT NULL, no default) column causes an SQL error on
+            // strict-mode MySQL/MariaDB installations.
+            'data'       => 0,
+            'times'      => $timesJson,
+            'exceptions' => $exceptionsJson,
         );
-
     }
 
     /**
      * @param Field $field
      * @return array
      */
-    public function getDatabaseSchema(Field $field):array
+    public function getDatabaseSchema(Field $field): array
     {
         $schema = parent::getDatabaseSchema($field);
         $schema['times'] = 'TEXT DEFAULT NULL';
+        $schema['exceptions'] = 'TEXT DEFAULT NULL';
         return $schema;
     }
 }

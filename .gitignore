@@ -1,0 +1,13 @@
+# Composer dependencies - regenerate locally with `composer install`.
+# composer.lock itself stays tracked, so installs stay reproducible.
+/vendor/
+
+# PHPUnit's own test-run cache - local state, not meaningful to track.
+/.phpunit.result.cache
+
+# Common OS/editor artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

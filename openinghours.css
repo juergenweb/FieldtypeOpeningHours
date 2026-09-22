@@ -67,6 +67,16 @@ by Jürgen Kern
   border-radius: 50%;
 }
 
+/* Lets the table scroll horizontally instead of being cut off by the admin content area
+   whenever it's wider than the available space (fe the extra "Copy to..." column pushing
+   the total width past what fits) - independent of, and in addition to, the
+   "AdminDataTableResponsive" stacked layout ProcessWire's own core CSS/JS only switches to
+   below 767px (see InputfieldOpeningHours::___render()). */
+.openinghours-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .openinghours-table {
   border: 1px solid #ddd;
   margin: 10px 0;
@@ -93,15 +103,22 @@ by Jürgen Kern
   padding: 5px;
 }
 
-.openinghours-table .number {
+/* .openinghours is the inner per-day/per-exception times table's own class (nested inside
+   the outer .openinghours-table for weekdays, standalone for exceptions - see
+   InputfieldOpeningHours::renderExceptionTimesInputs()), so targeting it directly here
+   covers the numbering in both tables with a single rule */
+.openinghours-table .number,
+.openinghours .number {
   line-height: 20px;
 }
 
-.openinghours-table .number:before {
+.openinghours-table .number:before,
+.openinghours .number:before {
   content: '(#';
 }
 
-.openinghours-table .number:after {
+.openinghours-table .number:after,
+.openinghours .number:after {
   content: ')';
 }
 
@@ -110,24 +127,53 @@ by Jürgen Kern
 }
 
 /* Visibility */
-tr.closed table.openinghours, tr.closed td.remove-buttons, tr.closed td.add {
+tr.closed table.openinghours {
   opacity: 0;
   transition: .3s all ease;
 }
 
-tr.open table.openinghours, tr.closed td.remove-buttons, tr.closed td.add {
+tr.open table.openinghours {
   opacity: 1;
   transition: .3s all ease;
 }
 
-/* Style input type time */
-.openinghours-table input[type="time"] {
+/* Style input type time - .openinghours is the inner times table's own class (see the
+   .number rules above), so this covers the exceptions' time table the same way */
+.openinghours-table input[type="time"],
+.openinghours input[type="time"] {
   padding: 9px 5px 7px 5px;
   font-size: 16px;
 }
 
+/* The admin theme's own input class (fe AdminThemeUikit's "uk-input", applied to the
+   exception time inputs so they match every other input on the page-edit screen - see
+   InputfieldOpeningHours::getExceptionInputClasses()) sets width:100%. The regular weekday
+   time inputs don't carry that class, so they're compact by default; this keeps the
+   exception ones just as compact inside their table cell. */
+.openinghours input[type="time"] {
+  width: auto;
+}
+
+/* The exceptions' Hours table also carries the core "AdminDataTable"/"AdminDataTableResponsive"
+   classes (same as the outer weekday table - see InputfieldOpeningHours::renderExceptionTimesInputs()),
+   which the admin theme stretches to width:100% via a rule apparently more specific than a
+   plain two-class selector can outrank (fe scoped under an id in the theme's own CSS) -
+   "!important" is used here to reliably win regardless of the theme's own selector specificity. */
+.AdminDataTable.openinghours {
+  width: auto !important;
+}
+
+/* Explicit, own vertical spacing between <tr> rows (rather than leaning on the admin
+   theme's own AdminDataTable/AdminDataList cell padding, which isn't guaranteed to be the
+   same in every context) - applies to both the exceptions' Hours table and the nested
+   per-weekday times table above, so the two always look exactly the same. */
+.openinghours td {
+  padding: 5px;
+}
+
 /* Add button styles */
-.openinghours-table button:disabled {
+.openinghours-table button:disabled,
+.openinghours button:disabled {
   background: #ccc;
   cursor: default;
 }
@@ -146,4 +192,240 @@ tr.open table.openinghours, tr.closed td.remove-buttons, tr.closed td.add {
   background: #f0f3f7;
 }
 
-.openinghours-table tr.day-ho Element {}
+/* "Copy to..." button + popover (InputfieldOpeningHours::renderCopyDayPopover()) - lets the
+   admin apply one day's times to other days instead of retyping them. Deliberately rendered
+   as normal in-flow content (not position:absolute) rather than a floating overlay: the outer
+   weekday table carries ProcessWire core's own "AdminDataTable"/"AdminDataTableResponsive"
+   classes (see the .AdminDataTable.openinghours rule above), which commonly wrap the table in
+   an overflow:auto/hidden container for small-screen scrolling - an absolutely positioned
+   popover extending past the cell would get silently clipped by that wrapper and appear to do
+   nothing when opened. Staying in-flow means it just pushes the row taller instead. */
+.oh-copy-day-btn {
+  font-weight: normal;
+  font-size: 0.85em;
+}
+
+.oh-copy-day-popover {
+  display: block;
+  margin-top: 8px;
+  z-index: 20;
+  background: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 10px 12px;
+  min-width: 180px;
+  font-weight: normal;
+  white-space: normal;
+}
+
+.oh-copy-day-heading {
+  margin: 0 0 6px;
+  font-weight: bold;
+}
+
+.oh-copy-day-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.oh-copy-day-list li {
+  margin: 2px 0;
+}
+
+/* ProcessWire core's own responsive-table mechanism (MarkupAdminDataTable.js/.css, applied
+   to any table carrying the "AdminDataTableResponsive" class - see the outer weekday table
+   above) stacks every <td> as a full-width block below 767px and hides the header row. Our
+   times <td> holds its own nested <table class="openinghours"> though, which isn't itself
+   responsive - if it has more than one time pair it can get wider than the viewport and
+   force the whole (now-stacked) row wider too, pushing the trailing "Copy to..." column
+   off-screen instead of appearing neatly below it. Making just this cell scroll
+   horizontally keeps the row itself - and everything after it - at the viewport's width. */
+@media only screen and (max-width: 767px) {
+  .openinghours-table td.times {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ProcessWire's responsive-table JS (AdminDataTable.setupMobile(), triggered by the
+     "AdminDataTableResponsive" class on the outer table) wraps every <td>'s original
+     content in a "<div class='td'>" and prepends a "<div class='th'>" label taken from
+     that column's <thead> text - core CSS then floats the label at 35% width and the
+     content at the remaining 65% (see "table.AdminDataTableResponsive tbody tr td > .th"
+     and "... > .th + .td" in MarkupAdminDataTable.css). This column's <th> is empty (it's
+     just the "Copy to..." button/popover, nothing to label), so that 35% is wasted and
+     the button gets squeezed into the other 65% - at narrow widths it ends up only
+     partially visible. Since there's no label worth keeping here, drop it and let the
+     button/popover use the cell's full width instead. */
+  .openinghours-table td.oh-copy-day-cell > .th {
+    display: none;
+  }
+
+  .openinghours-table td.oh-copy-day-cell > .td {
+    width: 100% !important;
+    float: none !important;
+  }
+}
+
+/* Exceptions section (holidays / company vacation), rendered directly below the
+   regular weekly schedule table on the page-edit screen - each exception is shown
+   as a stacked "card" rather than a table row, with its fields (Label, From/To,
+   Closed all day, Repeat every year, Hours, Remove button) one below the other */
+.oh-exceptions-wrap {
+  margin-top: 24px;
+}
+
+.oh-exceptions-list {
+  margin: 10px 0;
+}
+
+.oh-exception-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+/* wraps Label, From/To, Closed all day, Repeat every year and Hours. "gap" is the space
+   below each of these fields (bigger than the field's own internal label/input gap below),
+   "margin-bottom" is the extra space between this whole group and the "Remove Exception"
+   button below it */
+.oh-exception-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.oh-exception-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oh-exception-field > label {
+  padding-left: 0;
+}
+
+/* Remove Exception: keep the button as narrow as its own label, not stretched full-width
+   like the field column it sits in, and align it to the right of the card. The gap above
+   it comes from .oh-exception-fields' own margin-bottom, not from this element. */
+.oh-exception-field-remove {
+  align-items: flex-end;
+}
+
+.oh-exception-field-remove .oh-exception-remove-btn {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+/* Closed all day / Repeat every year: checkbox and its label side by side */
+.oh-exception-field-closed > label,
+.oh-exception-field-recurring > label {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  font-size: 13px;
+  color: inherit;
+}
+
+/* the "Dates" field label sits on its own line above the From/To row (see
+   .oh-exception-daterange-inputs below), mirroring the "Hours" field further down -
+   .oh-exception-field-daterange itself stays a plain column like every other field */
+
+/* Required-field marker for the "Dates" caption (From/To are mandatory) - same visual
+   mechanism ProcessWire's own core admin themes use for a required Inputfield: a class on
+   the field wrapper ("InputfieldStateRequired" there, "oh-required" here, since these
+   exception fields aren't real Inputfields) triggers a ":after" on the label rather than
+   the asterisk being part of the label text itself. Color matches PW's own $red variable
+   (see AdminThemeDefault/AdminThemeReno's _vars.scss). */
+.oh-required > label:first-child:after {
+  content: ' *';
+  color: #a30000;
+}
+
+/* Required-field marker for the "Hours" field (see InputfieldOpeningHours::renderExceptionRow(),
+   which puts the real "InputfieldStateRequired" class - the one ProcessWire core itself uses,
+   see InputfieldWrapper::render() - on this field's wrapper while the exception isn't
+   "closed all day"). The active admin theme's own CSS already colors the asterisk via this
+   same selector (fe AdminThemeUikit's compiled admin.css has
+   ".InputfieldStateRequired > .InputfieldHeader:first-child:after { color: ... }"), but
+   doesn't reliably also set its "content" in every ProcessWire version, so this rule
+   (scoped to .oh-exceptions-wrap, since these exception fields aren't real Inputfields) is
+   a safety net making sure the asterisk itself always shows. */
+.oh-exceptions-wrap .InputfieldStateRequired > label:first-child:after {
+  content: ' *';
+}
+
+.oh-exception-daterange-inputs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* same fix as the exception time inputs (.openinghours input[type="time"] above):
+   the admin theme's own input class sets width:100%, which would stretch these date fields
+   across the whole row instead of staying as compact as a native <input type="date"> */
+.oh-exception-daterange-inputs input[type="date"] {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.oh-exception-label {
+  width: 100%;
+}
+
+/* Hours: rendered as an actual <table class="openinghours"> (see
+   InputfieldOpeningHours::renderExceptionTimesInputs()), the exact same markup as the
+   regular weekday times table above - so its layout, spacing and input sizing already
+   come from the ".openinghours"/".openinghours-table" rules further up this file, with
+   nothing exception-specific needed here anymore.
+   ".oh-exception-field" is a column flex container, which by default stretches its
+   children (label + table) to the full width of the card - undo that here so the table
+   is only as wide as its own content (number/From/To/Add) instead of the whole card. */
+.oh-exception-field-times .openinghours {
+  align-self: flex-start;
+}
+
+/* Language tabs above the exception label field (mirrors ProcessWire's native langTabs) */
+.oh-exception-label-wrap {
+  min-width: 140px;
+}
+
+.oh-lang-tabs {
+  display: flex;
+  list-style: none;
+  margin: 0 0 3px 0;
+  padding: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.oh-lang-tab {
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #8d939e;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.oh-lang-tab:hover {
+  color: #3eb998;
+}
+
+.oh-lang-tab-active {
+  color: #3eb998;
+  border-bottom-color: #3eb998;
+  font-weight: bold;
+}
+
+.oh-exception-add-btn {
+  margin-top: 5px;
+}

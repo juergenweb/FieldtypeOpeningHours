@@ -1,0 +1,24 @@
+# Files and directories below are only needed for development (tests, their
+# runner/dependencies) or only for the GitHub repo page (README screenshots) -
+# not for running this module inside a ProcessWire installation.
+#
+# "export-ignore" leaves them out of any git-archive-based export, which
+# includes GitHub's "Download ZIP" button and a tagged release's source
+# archive - so anyone downloading/installing the module that way gets a
+# smaller, production-only copy. A normal `git clone` is unaffected and still
+# contains everything.
+
+# Automated tests, and everything only needed to run them
+/tests                      export-ignore
+/vendor                     export-ignore
+/composer.json              export-ignore
+/composer.lock              export-ignore
+/phpunit.xml                export-ignore
+/.phpunit.result.cache      export-ignore
+
+# Screenshots used only in README.md on the GitHub repo page
+/images                     export-ignore
+
+# Git/repository tooling metadata, not part of the module itself
+/.gitattributes             export-ignore
+/.gitignore                 export-ignore

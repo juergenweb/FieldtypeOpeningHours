@@ -1,10 +1,16 @@
 <?php
+
 declare(strict_types=1);
 
 namespace ProcessWire;
 
 class InputfieldOpeningHours extends Inputfield
 {
+    /**
+     * Construct this Inputfield, load OpeningHours.php and set default configuration
+     * property values.
+     * @return void
+     */
     public function __construct()
     {
         include_once(__DIR__ . '/OpeningHours.php');
@@ -19,12 +25,12 @@ class InputfieldOpeningHours extends Inputfield
     /**
      * @return array
      */
-    public static function getModuleInfo():array
+    public static function getModuleInfo(): array
     {
         return array(
             'title' => 'Inputfield Opening Hours',
             'summary' => 'Renders an input field for entering opening hours',
-            'version' => '1.2.0',
+            'version' => '2.0.0',
             'href' => 'https://github.com/juergenweb/FieldtypeOpeningHours',
             'icon' => 'clock-o',
             'permanent' => false,
@@ -41,13 +47,30 @@ class InputfieldOpeningHours extends Inputfield
      * Init is called when the system is ready for API usage
      * @return void
      */
-    public function init():void
+    public function init(): void
     {
-
         $version = $this->getModuleInfo()['version'] . '-' . time();
         //Add CSS and JS files for this inputfield
         $this->config->styles->add($this->config->urls->{$this->className} . 'openinghours.css?v=' . $version);
         $this->config->scripts->add($this->config->urls->{$this->className} . 'openinghours.js?v=' . $version);
+
+        // Make every user-facing text that openinghours.js builds into markup itself (the
+        // dynamically added day-times row and the exceptions/holidays section, both on the
+        // page-edit screen) translatable. $config->js() writes these into the JS global
+        // ProcessWire.config.ohTexts, output inside a <script> tag in the <head> of the
+        // admin page - this runs whenever this Inputfield is instantiated, whether that's
+        // a page-edit form or the field's own config screen.
+        $this->wire('config')->js('ohTexts', $this->getTranslateableTexts());
+
+        // make the admin theme's own input CSS classes (fe "uk-input", "uk-checkbox" with
+        // AdminThemeUikit) available to openinghours.js, so that exception rows/times added
+        // dynamically via JS get the exact same classes as the ones ProcessWire itself
+        // would put on a template-rendered input - keeping them visually consistent with
+        // every other input on the page-edit screen instead of hardcoding classes for one
+        // theme. Falls back to blank classes on admin themes that don't define any (fe
+        // AdminThemeReno), which is harmless since those themes don't need them.
+        $this->wire('config')->js('ohInputClasses', $this->getExceptionInputClasses());
+
         if ($this->languages) {
             foreach ($this->languages as $language) {
                 /** @var Language $language */
@@ -62,16 +85,66 @@ class InputfieldOpeningHours extends Inputfield
     }
 
     /**
+     * All texts that openinghours.js needs for markup it builds itself in the browser
+     * (dynamically added rows/buttons - see init(), which passes this to the JS as
+     * ProcessWire.config.ohTexts). Kept in one place so translators only have to look in
+     * one spot for the JS-side strings.
+     *
+     * IMPORTANT: every $this->_('...') call below MUST stay on its own line. ProcessWire's
+     * "Find new phrases to translate" language-file scanner (Setup > Languages > ... >
+     * translate module file) parses this file line by line and only picks up one such call
+     * per line - phrases sharing a line with another get silently skipped.
+     * @return array
+     */
+    protected function getTranslateableTexts(): array
+    {
+        $add = $this->_('Add');
+        $remove = $this->_('Remove');
+        $removeException = $this->_('Remove Exception');
+        $label = $this->_('Label');
+        $dates = $this->_('Dates');
+        $from = $this->_('From');
+        $to = $this->_('To');
+        $closedAllDay = $this->_('Closed all day');
+        $repeatEveryYear = $this->_('Repeat every year');
+        $hours = $this->_('Hours');
+        $labelPlaceholder = $this->_('fe New Year\'s Day');
+
+        return [
+            'add' => $add,
+            'remove' => $remove,
+            'removeException' => $removeException,
+            'label' => $label,
+            'dates' => $dates,
+            'from' => $from,
+            'to' => $to,
+            'closedAllDay' => $closedAllDay,
+            'repeatEveryYear' => $repeatEveryYear,
+            'hours' => $hours,
+            'labelPlaceholder' => $labelPlaceholder,
+        ];
+    }
+
+    /**
      * Method to render the inputfields in the backend
      * @return string
      */
-    public function ___render():string
+    public function ___render(): string
     {
         $name = $this->attr('name');
         $data = $this->attr('value');
-        $times = $data->data['times'];
+        // use the magic getter for the 'times' key (WireData::$data is protected and not
+        // accessible from here - $data->data['times'] silently resolves to null)
+        $times = $data->times;
 
-        $output = '<table id="' . $name . '-table" class="AdminDataTable AdminDataList AdminDataTableResponsive openinghours-table">';
+        // Wrap the table in a horizontally scrollable container: the extra "Copy to..."
+        // column can make the table wider than the available admin content width well
+        // above the 767px breakpoint where ProcessWire's own AdminDataTableResponsive
+        // stacking kicks in - without a scroll container, that trailing column would just
+        // get cut off by the viewport with no way to reach it. See the
+        // ".openinghours-table-wrap" rule in openinghours.css.
+        $output = '<div class="openinghours-table-wrap">';
+        $output .= '<table id="' . $name . '-table" class="AdminDataTable AdminDataList AdminDataTableResponsive openinghours-table">';
         $output .= '<thead>';
         $output .= '<tr>';
         $output .= '<th>' . $this->_('Day of the week') . '</th>';
@@ -91,19 +164,20 @@ class InputfieldOpeningHours extends Inputfield
                         }
                     }
 
-                    $output .= '<th colspan="3">' . $tableheaderNew . '</th>';
+                    $output .= '<th colspan="2">' . $tableheaderNew . '</th>';
                 }
             }
         }
+        // empty header cell for the trailing "Copy to..." button column
+        $output .= '<th></th>';
         $output .= '</tr>';
         $output .= '</thead>';
         $output .= '<tbody>';
 
         foreach ($times as $dayAbbr => $daytimesArray) {
-
             // show or hide Holiday input depending on the configuration settings
-            if(($this->hideholiday) && ($dayAbbr === 'ho')){
-                      $styleAttr = ' style="display:none"';
+            if (($this->hideholiday) && ($dayAbbr === 'ho')) {
+                $styleAttr = ' style="display:none"';
             } else {
                 $styleAttr = '';
             }
@@ -116,9 +190,11 @@ class InputfieldOpeningHours extends Inputfield
                 $checkboxStatus = '';
                 $statusClass = 'closed';
             }
-            $output .= '<tr id="' . $name . '-row-' . $dayAbbr . '" class="day-row day-' . $dayAbbr . ' ' . $statusClass . '"'.$styleAttr.'>';
+            $output .= '<tr id="' . $name . '-row-' . $dayAbbr . '" class="day-row day-' . $dayAbbr . ' ' . $statusClass . '"' . $styleAttr . '>';
             // Output name of the weekday
-            $output .= '<td class="weekday"><span>' . OpeningHours::getWeekdays()[$dayAbbr][1] . '</span></td>';
+            $output .= '<td class="weekday">';
+            $output .= '<span>' . OpeningHours::getWeekdays()[$dayAbbr][1] . '</span>';
+            $output .= '</td>';
             // Output checkbox switcher
             $output .= '<td>';
             $output .= '<label class="switch">';
@@ -127,7 +203,14 @@ class InputfieldOpeningHours extends Inputfield
             $output .= '</label>';
             $output .= '</td>';
             // output times per day
-            $output .= '<td id="' . $name . '-hours-' . $dayAbbr . '">';
+            // note: the id belongs only on the <table> (that's what the JS targets for
+            // adding/removing rows) - putting the same id on the wrapping <td> as well
+            // would produce invalid, duplicate-id HTML
+            // "times" class: see the ".openinghours-table td.times" responsive rule in
+            // openinghours.css - lets this cell scroll horizontally on narrow screens
+            // instead of forcing the whole (core-driven, stacked) row wider than the
+            // viewport and pushing the "Copy to..." column off-screen.
+            $output .= '<td class="times">';
             $output .= '<table id="' . $name . '-hours-' . $dayAbbr . '" class="openinghours">';
             $output .= '<tbody>';
             foreach ($daytimesArray as $num => $daytimeArray) {
@@ -141,7 +224,12 @@ class InputfieldOpeningHours extends Inputfield
                         $label = $this->_('To');
                         $class = ' to';
                     }
-                    $output .= '<td><label class="openinghours-label' . $class . '">' . $label . ':</label><input type="time" id="' . $name . '-' . $dayAbbr . '-' . $num . '-' . $time . '" class="input" name="' . $name . '-' . $dayAbbr . '-' . $num . '-' . $time . '" value="' . $timeValue . '"/></td>';
+                    // htmlspecialchars() here, even though isTimeValid() should already have
+                    // rejected anything that isn't a plain "H:i" string on submission - this
+                    // value can also come straight from the database (___wakeupValue()), which
+                    // doesn't re-validate it, so a row edited directly in the DB (or written by
+                    // a future import/migration script) can't break out of the attribute.
+                    $output .= '<td><label class="openinghours-label' . $class . '">' . $label . ':</label><input type="time" id="' . $name . '-' . $dayAbbr . '-' . $num . '-' . $time . '" class="input" name="' . $name . '-' . $dayAbbr . '-' . $num . '-' . $time . '" value="' . htmlspecialchars((string)$timeValue, ENT_QUOTES) . '"/></td>';
                 }
                 if ($num === 0) {
                     $output .= '<td><button id="' . $name . '-add-' . $dayAbbr . '" class="add-btn ui-button" type="button" data-max="' . $this->numberOftimes . '">' . $this->_('Add') . '</button></td>';
@@ -153,15 +241,91 @@ class InputfieldOpeningHours extends Inputfield
             $output .= '</tbody>';
             $output .= '</table>';
             $output .= '</td>';
+            // "Copy to..." button, in its own column at the end of the row - lets the admin
+            // apply this day's times to one or more other days without retyping them - see
+            // the ".oh-copy-day-*" handlers in openinghours.js. The popover's checklist and
+            // Apply/Cancel buttons are rendered here (once per day, always present but
+            // hidden until the button is clicked) rather than built dynamically in JS, so no
+            // extra translatable strings need duplicating into $config->js().
+            $output .= '<td class="oh-copy-day-cell">';
+            $output .= '<button type="button" class="oh-copy-day-btn ui-button ui-priority-secondary" data-day="' . $dayAbbr . '">' . $this->_('Copy to...') . '</button>';
+            $output .= $this->renderCopyDayPopover($dayAbbr);
+            $output .= '</td>';
             $output .= '</tr>';
         }
         $output .= '</tbody>';
-        $output .= '<tfoot><tr><td colspan="3">' . sprintf($this->_n('Only 1 time per day is permitted.',
+        $output .= '<tfoot><tr><td colspan="4">' . sprintf($this->_n('Only 1 time per day is permitted.',
                 'A max number of %s times per day is permitted.', $this->numberOftimes),
                 $this->numberOftimes) . '</td></tr></tfoot>';
         $output .= '</table>';
+        $output .= '</div>'; // .openinghours-table-wrap
+
+        // Exceptions (holidays, company vacation, reduced hours, ...), directly below the
+        // regular weekly schedule. Stored per page (part of this field's own value), so the
+        // data comes from the page's own OpeningHours object, not from a field setting.
+        $output .= $this->renderExceptionsSection($name, $data->exceptions ?: []);
 
         return $output;
+    }
+
+    /**
+     * Render the (initially hidden) "Copy to..." popover for one weekday row: a checklist of
+     * every other day plus Apply/Cancel buttons, toggled open/closed and wired up in
+     * openinghours.js (the ".oh-copy-day-*" handlers). Rendered once per day up front rather
+     * than built dynamically in JS, so the day names/checkboxes never need duplicating into
+     * translatable JS config - only the two button labels matter there, and those are plain
+     * server-rendered PHP strings like everything else in this method.
+     * @param string $sourceDay the weekday abbreviation this button/popover belongs to
+     * @return string
+     */
+    protected function renderCopyDayPopover(string $sourceDay): string
+    {
+        $out = '<div class="oh-copy-day-popover" data-day="' . $sourceDay . '" style="display:none">';
+        $out .= '<p class="oh-copy-day-heading">' . $this->_('Copy this day\'s times to:') . '</p>';
+        $out .= '<ul class="oh-copy-day-list">';
+        foreach (OpeningHours::getWeekdays() as $targetDay => $targetNames) {
+            if ($targetDay === $sourceDay) {
+                continue; // a day can't copy onto itself
+            }
+            if ($this->hideholiday && $targetDay === 'ho') {
+                continue; // hidden from the schedule entirely - don't offer it as a target either
+            }
+            $out .= '<li><label><input type="checkbox" class="oh-copy-day-target" value="' . $targetDay . '"/> ' . $targetNames[1] . '</label></li>';
+        }
+        $out .= '</ul>';
+        $out .= '<button type="button" class="ui-button oh-copy-day-apply-btn">' . $this->_('Apply') . '</button> ';
+        $out .= '<button type="button" class="ui-button ui-priority-secondary oh-copy-day-cancel-btn">' . $this->_('Cancel') . '</button>';
+        $out .= '</div>';
+        return $out;
+    }
+
+    /**
+     * Render the "Exceptions" section shown directly below the weekly schedule table on the
+     * page-edit screen. The actual value that gets saved lives in the hidden
+     * "<fieldname>-exceptions" input added alongside this markup - openinghours.js keeps its
+     * JSON in sync with the visible cards, and ___processInput() reads it back on submit.
+     * @param string $name
+     * @param array $exceptions
+     * @return string
+     */
+    protected function renderExceptionsSection(string $name, array $exceptions): string
+    {
+        // exceptions that already lie completely in the past (and don't repeat) are hidden
+        // here right away - the LazyCron hook in FieldtypeOpeningHours takes care of actually
+        // removing them from storage
+        $exceptions = OpeningHours::filterActiveExceptions($exceptions);
+
+        $out = '<div class="oh-exceptions-wrap">';
+        $out .= '<h3>' . $this->_('Exceptions (holidays, company vacation, ...)') . '</h3>';
+        $out .= '<p class="description">' . $this->_('Add single days (fe New Year\'s Day) or date ranges (fe a company vacation) that should override the regular weekly schedule above. An exception can either close the location completely or apply reduced hours for that day/range. Check "repeats every year" for exceptions that always fall on the same date (fe public holidays) - those are never removed automatically. Expired, non-repeating exceptions are removed automatically once their end date is in the past.') . '</p>';
+
+        /** @noinspection HtmlUnknownAttribute */
+        $out .= '<input type="hidden" id="' . $name . '-exceptions" name="' . $name . '-exceptions" class="oh-exceptions-hidden" value="' . htmlspecialchars(json_encode(array_values($exceptions)), ENT_QUOTES) . '"/>';
+
+        $out .= $this->renderExceptionsConfigMarkup($exceptions);
+
+        $out .= '</div>';
+        return $out;
     }
 
     /**
@@ -174,7 +338,7 @@ class InputfieldOpeningHours extends Inputfield
      * @param array $times
      * @return array
      */
-    public function sanitizeValidateValues(array $times):array
+    public function sanitizeValidateValues(array $times): array
     {
         $sanitizedValues = [];
         foreach (OpeningHours::getWeekdays() as $key => $value) { //key = mo,tu,.. value = ['Mo' => 'Monday']
@@ -192,9 +356,6 @@ class InputfieldOpeningHours extends Inputfield
                             //set both values to empty and add it back to the array
                             $timePair = ['start' => '', 'finish' => ''];
                             $this->warning($this->_('Incomplete time with only a start or endtime was removed.'));
-                        }
-                        if ((count($timePair) === 0)) {
-                            $timePair = false;
                         }
                         if ($dayAbbr == $key) {
                             if ((count(array_filter($timePair)) === 2) || ($pos === 0)) {
@@ -228,9 +389,45 @@ class InputfieldOpeningHours extends Inputfield
                 } else {
                     $sanitizedValues[$dayAbbr] = $timeValues[$dayAbbr];
                 }
+                $this->warnOnOverlappingTimePairs($dayName, $sanitizedValues[$dayAbbr]);
             }
         }
         return $sanitizedValues;
+    }
+
+    /**
+     * Warn (but don't drop or otherwise change) about two time-pairs on the same day that
+     * overlap each other, fe "08:00-12:00" and "10:00-14:00" both entered for the same day.
+     * This doesn't catch every possible overlap involving an overnight pair (fe "22:00-02:00"
+     * finishing on the following calendar day) - only same-day pairs are compared here, since
+     * checking an overnight pair's early-morning continuation against the *next* day's own
+     * times would need to look across days, which sanitizeValidateValues() processes one day
+     * at a time.
+     * @param string $dayName
+     * @param array $pairs the day's final ['start' => 'H:i', 'finish' => 'H:i'] pairs, already
+     *   sorted ascending by start time
+     * @return void
+     */
+    protected function warnOnOverlappingTimePairs(string $dayName, array $pairs): void
+    {
+        $sameDayPairs = array_values(array_filter($pairs, function ($pair) {
+            $start = $pair['start'] ?? '';
+            $finish = $pair['finish'] ?? '';
+            // only a complete, same-day (non-overnight) pair can be reliably compared here -
+            // see the docblock above
+            return $start !== '' && $finish !== '' && $finish > $start;
+        }));
+
+        for ($i = 1; $i < count($sameDayPairs); $i++) {
+            $previous = $sameDayPairs[$i - 1];
+            $current = $sameDayPairs[$i];
+            if ($current['start'] < $previous['finish']) {
+                $this->warning(sprintf(
+                    $this->_('On %1$s, the time range %2$s-%3$s overlaps with %4$s-%5$s.'),
+                    $dayName, $previous['start'], $previous['finish'], $current['start'], $current['finish']
+                ));
+            }
+        }
     }
 
     /**
@@ -240,7 +437,7 @@ class InputfieldOpeningHours extends Inputfield
      * @return $this
      *
      */
-    public function ___processInput(WireInputData $input):self
+    public function ___processInput(WireInputData $input): self
     {
         $name = $this->attr('name');
 
@@ -251,6 +448,16 @@ class InputfieldOpeningHours extends Inputfield
             if (str_starts_with($key, $name)) {
                 $timeInputs[$key] = $value;
             }
+        }
+
+        // the exceptions (holidays/company vacation) hidden JSON field is handled separately
+        // below - pull it out here so the day-times loops that follow don't try to treat its
+        // value as a time string
+        $exceptionsKey = $name . '-exceptions';
+        $exceptionsRaw = null;
+        if (array_key_exists($exceptionsKey, $timeInputs)) {
+            $exceptionsRaw = (string)$timeInputs[$exceptionsKey];
+            unset($timeInputs[$exceptionsKey]);
         }
 
         // 1) check if all days are present with at least 1 start and 1 end time - if not add it to the array with index 0
@@ -306,7 +513,258 @@ class InputfieldOpeningHours extends Inputfield
         //add it to the object to make it reachable in fieldtype as property 'value'
         $this->value['times'] = $flattenArray;
 
+        // 7) sanitize and store the submitted exceptions (holidays/company vacation)
+        $this->value['exceptions'] = $this->sanitizeExceptionsInput($exceptionsRaw);
+
         return $this;
+    }
+
+    /**
+     * Sanitize the submitted exceptions (holidays/company vacation) JSON from the hidden
+     * "<fieldname>-exceptions" input (kept in sync with the visible cards by openinghours.js -
+     * see ohSyncExceptions() there) into a clean array ready for storage.
+     * @param string|null $raw
+     * @return array
+     */
+    protected function sanitizeExceptionsInput(?string $raw): array
+    {
+        if (!$raw) {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $sanitized = [];
+        foreach ($decoded as $index => $exception) {
+            if (!is_array($exception) || empty($exception['startDate'])) {
+                continue;
+            }
+            $startDate = $this->sanitizeExceptionDate((string)$exception['startDate']);
+            if (!$startDate) {
+                continue;
+            }
+            $endDate = !empty($exception['endDate']) ? $this->sanitizeExceptionDate((string)$exception['endDate']) : '';
+            if (!$endDate) {
+                $endDate = $startDate;
+            }
+
+            // "To" must be on or after "From" - unlike a day's start/finish time (which can
+            // legitimately wrap past midnight, fe 22:00 to 02:00, so that only gets a
+            // warning below - see sanitizeValidateValues()), a calendar date range has no
+            // such wraparound case, so an end date before the start date is always invalid.
+            // Y-m-d strings compare correctly with standard string comparison operators.
+            if ($endDate < $startDate) {
+                $this->error(sprintf(
+                    $this->_('Exception #%1$s: the end date (%2$s) is before the start date (%3$s). It has been reset to match the start date - please correct it.'),
+                    (string)($index + 1), $endDate, $startDate
+                ));
+                $endDate = $startDate;
+            }
+
+            $label = $exception['label'] ?? '';
+            if (is_array($label)) {
+                // only accept keys that are actually one of this site's language ids (or
+                // "default") - the label array comes straight from the submitted JSON, so an
+                // unrecognized key here would otherwise be stored and later handed back out
+                // untouched as a JSON object key (see getExceptionLanguagesJson()/
+                // renderExceptionLabelInputs()); on a site with client-side code that assigns
+                // into an object using such a key, an attacker-chosen key like "__proto__" or
+                // "constructor" could be used for a prototype-pollution attempt there, so
+                // unrecognized keys are dropped rather than passed through
+                $allowedKeys = $this->getAllowedExceptionLabelLanguageKeys();
+                $cleanLabel = [];
+                foreach ($label as $lang => $text) {
+                    $lang = (string)$lang;
+                    if (!in_array($lang, $allowedKeys, true)) {
+                        continue;
+                    }
+                    $cleanLabel[$lang] = $this->wire('sanitizer')->text((string)$text);
+                }
+                $label = $cleanLabel;
+            } else {
+                $label = $this->wire('sanitizer')->text((string)$label);
+            }
+
+            $closed = !empty($exception['closed']);
+            $times = [];
+            if (!$closed && !empty($exception['times']) && is_array($exception['times'])) {
+                foreach (array_slice($exception['times'], 0, max((int)$this->numberOftimes, 1)) as $pos => $pair) {
+                    if (!is_array($pair)) {
+                        continue;
+                    }
+                    $start = (string)($pair['start'] ?? '');
+                    $finish = (string)($pair['finish'] ?? '');
+                    if ($start && !OpeningHours::isTimeValid($start)) {
+                        $start = '';
+                    }
+                    if ($finish && !OpeningHours::isTimeValid($finish)) {
+                        $finish = '';
+                    }
+                    // "To" must be on or after "From" - same rule as the exception's date
+                    // range above. Unlike the regular weekday schedule (where a pair may
+                    // legitimately wrap past midnight, fe 22:00 to 02:00 - see
+                    // sanitizeValidateValues()), an exception's Hours field describes a
+                    // single day/date range rather than a recurring day, so a finish time
+                    // before the start time is always invalid here - the pair is dropped
+                    // rather than guessing a corrected value.
+                    if ($start && $finish && $finish < $start) {
+                        $this->error(sprintf(
+                            $this->_('Exception #%1$s, time #%2$s: the end time (%3$s) is before the start time (%4$s). This time was removed - please correct it.'),
+                            (string)($index + 1), (string)($pos + 1), $finish, $start
+                        ));
+                        continue;
+                    }
+                    // Both "From" and "To" are required on every entered time (matching the
+                    // "InputfieldStateRequired" marker now on the "Hours" field - see
+                    // renderExceptionRow()) - a pair with only one side filled in is
+                    // incomplete rather than a usable time range, so it's dropped with an
+                    // error instead of being silently half-saved.
+                    if ($start && $finish) {
+                        $times[] = ['start' => $start, 'finish' => $finish];
+                    } elseif ($start || $finish) {
+                        $this->error(sprintf(
+                            $this->_('Exception #%1$s, time #%2$s: please fill in both the start and end time.'),
+                            (string)($index + 1), (string)($pos + 1)
+                        ));
+                    }
+                }
+            }
+
+            // "Hours" is required unless the exception is marked "closed all day" - at
+            // least one complete time range must have been entered (see the loop above),
+            // matching the "InputfieldStateRequired" marker now shown on the "Hours" field
+            // while the "oh-exception-closed" checkbox isn't checked (renderExceptionRow()/
+            // the ".oh-exception-closed" change handler in openinghours.js).
+            if (!$closed && !count($times)) {
+                $this->error(sprintf(
+                    $this->_('Exception #%s: please enter at least one time range in "Hours", or check "Closed all day".'),
+                    (string)($index + 1)
+                ));
+            }
+
+            $sanitized[] = [
+                'label' => $label,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'recurring' => !empty($exception['recurring']),
+                'closed' => $closed,
+                'times' => $times,
+            ];
+        }
+
+        // Warn (but don't drop or reorder anything) about two exceptions whose date ranges
+        // overlap - see warnOnOverlappingExceptionDateRanges() for why this matters.
+        $this->warnOnOverlappingExceptionDateRanges($sanitized);
+
+        return $sanitized;
+    }
+
+    /**
+     * Warn about two exceptions whose date ranges overlap, fe a "Company vacation"
+     * exception for 24.12.-02.01. and a "Christmas" exception for 24.12.-26.12. both
+     * defined at the same time. This matters because
+     * OpeningHours::getExceptionForDate()/exceptionMatchesDate() only ever return the
+     * FIRST matching exception for a given date - if two exceptions' ranges overlap,
+     * whichever one happens to come first in the list silently wins on the overlapping
+     * days and the other is never applied there, which is very likely not what was
+     * intended. Every pair is compared (not just adjacent ones, unlike
+     * warnOnOverlappingTimePairs() above) since there's no single meaningful sort order
+     * across a mix of recurring and one-off date ranges - the list is expected to stay
+     * short (a handful of holidays/vacations per field), so the O(n^2) comparison is fine.
+     * @param array $exceptions the final, sanitized exceptions (see sanitizeExceptionsInput())
+     * @return void
+     */
+    protected function warnOnOverlappingExceptionDateRanges(array $exceptions): void
+    {
+        $count = count($exceptions);
+        for ($i = 0; $i < $count; $i++) {
+            for ($j = $i + 1; $j < $count; $j++) {
+                if (!$this->exceptionDateRangesOverlap($exceptions[$i], $exceptions[$j])) {
+                    continue;
+                }
+                $this->warning(sprintf(
+                    $this->_('Exception #%1$s (%2$s to %3$s) overlaps with exception #%4$s (%5$s to %6$s). Only the first of the two (in the order shown above) will actually apply on the overlapping dates.'),
+                    (string)($i + 1), $exceptions[$i]['startDate'], $exceptions[$i]['endDate'],
+                    (string)($j + 1), $exceptions[$j]['startDate'], $exceptions[$j]['endDate']
+                ));
+            }
+        }
+    }
+
+    /**
+     * Check whether two exceptions' date ranges overlap anywhere on the calendar.
+     *
+     * Two non-recurring (one-off) exceptions are compared as plain, exact "Y-m-d" ranges,
+     * since each only ever applies in its own specific year.
+     *
+     * If either side recurs every year, only the month/day portion is meaningful (the
+     * year stored in its own startDate/endDate is arbitrary - see
+     * OpeningHours::exceptionMatchesDate()), so both sides are reduced to a month-day
+     * range first (fe "12-24" to "12-26"). This is also correct for a mixed comparison
+     * (one recurring against one one-off exception): if a recurring range covers a
+     * one-off exception's month/day, that one-off date genuinely falls within the
+     * recurring range that same year, so it's a real conflict.
+     *
+     * Either kind of month-day range can wrap across new year's eve (fe "12-28" to
+     * "01-03"), same as exceptionMatchesDate() allows - monthDayInRange() handles that.
+     * @param array $a
+     * @param array $b
+     * @return bool
+     */
+    protected function exceptionDateRangesOverlap(array $a, array $b): bool
+    {
+        if (empty($a['recurring']) && empty($b['recurring'])) {
+            return $a['startDate'] <= $b['endDate'] && $b['startDate'] <= $a['endDate'];
+        }
+
+        // "Y-m-d" -> "m-d" (fe "2026-12-24" -> "12-24") via substr() rather than
+        // re-parsing with DateTime - startDate/endDate are already validated, fixed-format
+        // "Y-m-d" strings at this point (see sanitizeExceptionDate()).
+        $aStartMd = substr($a['startDate'], 5);
+        $aEndMd = substr($a['endDate'], 5);
+        $bStartMd = substr($b['startDate'], 5);
+        $bEndMd = substr($b['endDate'], 5);
+
+        // two (possibly wrapping) ranges overlap if either one's boundary falls inside the
+        // other
+        return $this->monthDayInRange($bStartMd, $aStartMd, $aEndMd)
+            || $this->monthDayInRange($bEndMd, $aStartMd, $aEndMd)
+            || $this->monthDayInRange($aStartMd, $bStartMd, $bEndMd);
+    }
+
+    /**
+     * Whether a given "m-d" value falls within a (possibly wrapping, fe "12-28" to "01-03")
+     * "m-d" range - the same rule OpeningHours::exceptionMatchesDate() uses to match a
+     * recurring exception against a calendar date, extracted here so
+     * exceptionDateRangesOverlap() above can reuse it to compare two ranges instead of a
+     * range against a single date.
+     * @param string $md
+     * @param string $startMd
+     * @param string $endMd
+     * @return bool
+     */
+    protected function monthDayInRange(string $md, string $startMd, string $endMd): bool
+    {
+        if ($startMd <= $endMd) {
+            return $md >= $startMd && $md <= $endMd;
+        }
+        return $md >= $startMd || $md <= $endMd;
+    }
+
+    /**
+     * Validate a date string (Y-m-d) submitted for an exception's start/end date.
+     * @param string $date
+     * @return string blank if invalid
+     */
+    protected function sanitizeExceptionDate(string $date): string
+    {
+        $parsed = \DateTime::createFromFormat('Y-m-d', $date);
+        if (!$parsed || $parsed->format('Y-m-d') !== $date) {
+            return '';
+        }
+        return $date;
     }
 
     /**
@@ -315,7 +773,7 @@ class InputfieldOpeningHours extends Inputfield
      * @throws WireException
      * @throws WirePermissionException
      */
-    public function ___getConfigInputfields():Inputfield
+    public function ___getConfigInputfields(): Inputfield
     {
         $inputfields = parent::___getConfigInputfields();
 
@@ -392,8 +850,6 @@ class InputfieldOpeningHours extends Inputfield
         $f->description = $this->_('If checked, the input field for Holidays will not be displayed.');
         $inputfields->append($f);
 
-
-
         /**  $docFieldset */
         $docFieldset = $this->wire('modules')->get('InputfieldFieldset');
         $docFieldset->label = $this->_('How to');
@@ -414,6 +870,12 @@ class InputfieldOpeningHours extends Inputfield
         $text .= '<pre><code>echo $page->' . $this->name . '->renderDay(\'mo\');</code></pre>';
         $text .= '<p>' . $this->_('This will output the opening hours on that day as a string.') . '</p>';
         $text .= '<pre><code>08:00:00 AM - 12:00:00 PM, 02:00:00 PM - 06:00:00 PM</code></pre>';
+        $text .= '<h3>' . $this->_('Exceptions (holidays, company vacation, reduced hours)') . '</h3>';
+        $text .= '<p>' . $this->_('In addition to the regular weekly schedule above, you can add exceptions (fe holidays, company vacation or reduced hours on a specific date or date range). Exceptions can be closed all day, have their own times, and optionally repeat every year.') . '</p>';
+        $text .= '<pre><code>echo $page->' . $this->name . '->renderExceptionsForYear();</code></pre>';
+        $text .= '<p>' . $this->_('This will output all exceptions that are active in the current year as an unordered list.') . '</p>';
+        $text .= '<pre><code><ul><li class="exception">24.12.2026 - 26.12.2026: Christmas: closed</li><li class="exception">31.12.2026: New Year\'s Eve: 08:00:00 AM - 02:00:00 PM</li></ul></code></pre>';
+        $text .= '<p>' . $this->_('There are also renderExceptionsForWeek() and renderExceptionsForMonth() to only show exceptions active in the current week or month.') . '</p>';
         $link = '<a href="https://github.com/juergenweb/FieldtypeOpeningHours/tree/master#output-in-templates" target="_blank">GitHub</a>';
         $text .= sprintf($this->_('You will find more advanced output methods inside the description of this module on %s.'),
             $link);
@@ -427,12 +889,345 @@ class InputfieldOpeningHours extends Inputfield
     }
 
     /**
+     * Render the markup (cards with add/remove rows) for editing exceptions
+     * (holidays, company vacation, reduced hours) directly on the page-edit screen, below
+     * the regular weekly schedule. The actual value that gets saved lives in the hidden
+     * "<fieldname>-exceptions" input rendered alongside this markup by
+     * renderExceptionsSection() - openinghours.js keeps its JSON in sync with these rows.
+     * @param array $exceptions
+     * @return string
+     */
+    protected function renderExceptionsConfigMarkup(array $exceptions): string
+    {
+        // list of languages the "Label" field should offer an input for; falls back to a
+        // single "default" entry on single-language sites
+        $languagesJson = htmlspecialchars($this->getExceptionLanguagesJson(), ENT_QUOTES);
+
+        // reset before the loop - renderExceptionRow() uses (and increments) this to give
+        // each row's "Closed all day" checkbox its own unique id/name (see there)
+        $this->exceptionRowIndex = 0;
+
+        $out = '<div class="oh-exceptions-list" data-languages="' . $languagesJson . '" data-max-times="' . (int)$this->numberOftimes . '">';
+        foreach ($exceptions as $exception) {
+            $out .= $this->renderExceptionRow($exception);
+        }
+        $out .= '</div>';
+        $out .= '<button type="button" class="ui-button oh-exception-add-btn">' . $this->_('Add exception') . '</button>';
+        return $out;
+    }
+
+    /**
+     * Running counter used by renderExceptionRow() to give each row's "Closed all day"
+     * checkbox a unique id/name (fe "<fieldname>-exception-closed-0", "...-1", ...) - reset
+     * to 0 at the start of each renderExceptionsConfigMarkup() call.
+     * @var int
+     */
+    protected int $exceptionRowIndex = 0;
+
+    /**
+     * The set of language-id keys a submitted multi-language exception label is allowed to
+     * use ("default" plus every actually configured language's id) - see
+     * sanitizeExceptionsInput(), which drops any key not in this list. Kept separate from
+     * getExceptionLanguagesJson() (which additionally needs each language's display name)
+     * so this stays cheap to call on every submitted exception.
+     * @return string[]
+     */
+    protected function getAllowedExceptionLabelLanguageKeys(): array
+    {
+        $languages = $this->wire('languages');
+        if (!$languages || count($languages) <= 1) {
+            return ['default'];
+        }
+        $keys = [];
+        foreach ($languages as $language) {
+            $keys[] = $language->isDefault() ? 'default' : (string)$language->id;
+        }
+        return $keys;
+    }
+
+    /**
+     * List of languages the exception "Label" field should offer an input for, as
+     * [{"id": "default"|"<languageId>", "label": "<language name>"}, ...]. Falls back to a
+     * single "default" entry when no (or only one) language is installed. Returned as a
+     * JSON string so it can be embedded as a data attribute and read once by openinghours.js
+     * (used there to build the label inputs for newly added rows).
+     * @return string
+     */
+    protected function getExceptionLanguagesJson(): string
+    {
+        $languages = $this->wire('languages');
+        $list = [];
+        if ($languages && count($languages) > 1) {
+            foreach ($languages as $language) {
+                // show the language's own name (fe "English", "Deutsch") for every tab,
+                // including the default language - never the generic word "default"
+                $list[] = [
+                    'id' => $language->isDefault() ? 'default' : (string)$language->id,
+                    'label' => (string)($language->title ?: $language->name),
+                ];
+            }
+        } else {
+            $list[] = ['id' => 'default', 'label' => $this->_('default')];
+        }
+        return json_encode($list);
+    }
+
+    /**
+     * CSS classes the currently active admin theme uses for plain inputs, checkboxes and
+     * field-caption labels. 'input'/'input-checkbox' come from AdminTheme::getClass() (fe
+     * AdminThemeUikit maps them to "uk-input"/"uk-checkbox"), same as before.
+     *
+     * 'label', however, can't be read that way: AdminTheme::getClass() has no dedicated key
+     * for form labels (confirmed against AdminThemeUikit's own setClasses() - it only covers
+     * inputs/selects/checkboxes/etc.). ProcessWire's own core-rendered field labels (fe
+     * "<label class='InputfieldHeader uk-form-label' for='...'>") instead get their class
+     * from a *markup template* the theme registers via InputfieldWrapper::setMarkup() in its
+     * init.php (AdminThemeUikit sets 'item_label' to that exact string). Reading it back via
+     * InputfieldWrapper::getMarkup()['item_label'] and pulling out the class attribute is the
+     * same mechanism ProcessWire core uses to build that label, so this automatically follows
+     * whichever admin theme is active - no per-theme class name has to be hardcoded here.
+     * The full class string (fe "InputfieldHeader uk-form-label") is kept as-is, so these
+     * stand-alone labels end up with the exact same classes as a core-rendered field label.
+     * @return array ['input' => string, 'checkbox' => string, 'label' => string]
+     */
+    protected function getExceptionInputClasses(): array
+    {
+        $adminTheme = $this->wire('adminTheme');
+        $input = '';
+        $checkbox = '';
+        if ($adminTheme && method_exists($adminTheme, 'getClass')) {
+            $input = (string)$adminTheme->getClass('input');
+            $checkbox = (string)$adminTheme->getClass('input-checkbox');
+        }
+
+        $label = '';
+        $markup = InputfieldWrapper::getMarkup();
+        if (!empty($markup['item_label']) && preg_match('/class=[\'"]([^\'"]+)[\'"]/', $markup['item_label'], $matches)) {
+            $label = trim($matches[1]);
+        }
+
+        return ['input' => $input, 'checkbox' => $checkbox, 'label' => $label];
+    }
+
+    /**
+     * Render the "Label" cell of an exception row.
+     * On a single-language site, this is just one plain text input. On a multi-language
+     * site, it renders a small tab strip (one tab per language, mirroring ProcessWire's
+     * native language tabs) plus one input per language - only the input matching the
+     * active tab is visible at a time (see the ".oh-lang-tab" click handler in
+     * openinghours.js). A label saved before multi-language support was added (a plain
+     * string, rather than a {lang: text} map) is treated as the default language's text.
+     * @param array|string $label
+     * @return string
+     */
+    protected function renderExceptionLabelInputs($label): string
+    {
+        $labels = is_array($label) ? $label : ['default' => (string)$label];
+        $languages = json_decode($this->getExceptionLanguagesJson(), true);
+        $placeholder = $this->_('fe New Year\'s Day');
+        // admin theme's own input class (fe "uk-input"), kept in sync with every other
+        // input on this config screen - see getExceptionInputClasses()
+        $inputClass = trim('oh-exception-label ' . $this->getExceptionInputClasses()['input']);
+
+        if (count($languages) <= 1) {
+            $value = htmlspecialchars($labels['default'] ?? '', ENT_QUOTES);
+            return '<input type="text" class="' . $inputClass . '" data-lang="default" value="' . $value . '" placeholder="' . $placeholder . '"/>';
+        }
+
+        $tabs = '<ul class="oh-lang-tabs">';
+        $inputs = '<div class="oh-lang-input-wrap">';
+        foreach ($languages as $i => $language) {
+            $langId = htmlspecialchars($language['id'], ENT_QUOTES);
+            $activeClass = $i === 0 ? ' oh-lang-tab-active' : '';
+            $tabs .= '<li class="oh-lang-tab' . $activeClass . '" data-lang="' . $langId . '">' . htmlspecialchars($language['label'], ENT_QUOTES) . '</li>';
+            $value = htmlspecialchars($labels[$language['id']] ?? '', ENT_QUOTES);
+            $style = $i === 0 ? '' : ' style="display:none"';
+            $inputs .= '<input type="text" class="' . $inputClass . '" data-lang="' . $langId . '" value="' . $value . '" placeholder="' . $placeholder . '"' . $style . '/>';
+        }
+        $tabs .= '</ul>';
+        $inputs .= '</div>';
+
+        return '<div class="oh-exception-label-wrap">' . $tabs . $inputs . '</div>';
+    }
+
+    /**
+     * Render the "Hours" field of an exception row: one or more start/finish time-pair
+     * inputs, up to the configured max (numberOftimes, the same setting that limits the
+     * number of times per weekday in the regular schedule above). Mirroring the regular
+     * day-times markup further up in this file, the "Add" button sits inline in the first
+     * pair's row and every additional pair has its own inline "Remove" button instead.
+     * @param array $times array of ['start' => 'H:i', 'finish' => 'H:i'] pairs; also
+     *   accepts a single legacy exception array with 'start'/'finish' keys for backwards
+     *   compatibility with entries saved before multiple times were supported
+     * @return string
+     */
+    protected function renderExceptionTimesInputs(array $times): string
+    {
+        // normalize: a legacy single exception (['start' => ..., 'finish' => ...]) becomes
+        // a one-item list; an empty/missing list becomes one empty pair
+        if (array_key_exists('start', $times) || array_key_exists('finish', $times)) {
+            $times = [['start' => $times['start'] ?? '', 'finish' => $times['finish'] ?? '']];
+        }
+        if (!count($times)) {
+            $times = [['start' => '', 'finish' => '']];
+        }
+        $maxTimes = (int)$this->numberOftimes;
+        $times = array_slice(array_values($times), 0, max($maxTimes, 1));
+        // admin theme's own input class (fe "uk-input"), kept in sync with every other
+        // input on this config screen - see getExceptionInputClasses()
+        $inputClass = trim($this->getExceptionInputClasses()['input']);
+
+        // note: deliberately NOT using the "add-btn"/"remove-btn" classes from the regular
+        // day-times markup above - those classes already have their own document-level click
+        // handlers (targeting id patterns like "field-add-mo") which would otherwise also
+        // fire for these buttons and throw, since these buttons have no such id
+        //
+        // Rendered as an actual <table>, matching the regular weekday times table further
+        // up in ___render() (<tr>/<td> per time-pair) instead of the previous div-based
+        // layout - so both look and behave identically. The
+        // ".oh-exception-time-list"/".oh-exception-time-pair" classes that openinghours.js
+        // uses to find/add/remove rows now sit on <tbody>/<tr> instead of <div>, but the
+        // class-based jQuery selectors there didn't need to change.
+        // "AdminDataTable AdminDataList AdminDataTableResponsive" are the same core
+        // ProcessWire classes the outer weekday table carries (see ___render() above) -
+        // they're hardcoded defaults in the core MarkupAdminDataTable module, so they apply
+        // regardless of which admin theme/template is active, not just under AdminThemeUikit.
+        $out = '<table class="AdminDataTable AdminDataList AdminDataTableResponsive openinghours">';
+        $out .= '<tbody class="oh-exception-time-list">';
+        foreach ($times as $i => $timePair) {
+            $start = htmlspecialchars($timePair['start'] ?? '', ENT_QUOTES);
+            $finish = htmlspecialchars($timePair['finish'] ?? '', ENT_QUOTES);
+            $out .= '<tr class="oh-exception-time-pair">';
+            // same "(#1)", "(#2)", ... numbering as the regular weekday times above
+            $out .= '<td><span class="number">' . ($i + 1) . '</span></td>';
+            // same translatable "From"/"To" labels as the regular weekday times above
+            $out .= '<td><label class="openinghours-label from">' . $this->_('From') . ':</label><input type="time" class="' . trim('oh-exception-time-start ' . $inputClass) . '" value="' . $start . '"/></td>';
+            $out .= '<td><label class="openinghours-label to">' . $this->_('To') . ':</label><input type="time" class="' . trim('oh-exception-time-finish ' . $inputClass) . '" value="' . $finish . '"/></td>';
+            if ($i === 0) {
+                $disabled = count($times) >= $maxTimes ? ' disabled="disabled"' : '';
+                $out .= '<td><button type="button" class="ui-button oh-exception-time-add-btn" data-max="' . $maxTimes . '"' . $disabled . '>' . $this->_('Add') . '</button></td>';
+            } else {
+                $out .= '<td><button type="button" class="ui-button ui-priority-secondary oh-exception-time-remove-btn">' . $this->_('Remove') . '</button></td>';
+            }
+            $out .= '</tr>';
+        }
+        $out .= '</tbody>';
+        $out .= '</table>';
+
+        return $out;
+    }
+
+    /**
+     * Render a single exception row (used both for existing entries and, via JS, as a
+     * template for newly added rows - see openinghours.js)
+     * @param array $exception
+     * @return string
+     */
+    protected function renderExceptionRow(array $exception): string
+    {
+        $startDate = htmlspecialchars($exception['startDate'] ?? '', ENT_QUOTES);
+        $endDate = htmlspecialchars($exception['endDate'] ?? ($exception['startDate'] ?? ''), ENT_QUOTES);
+        $recurring = !empty($exception['recurring']) ? ' checked' : '';
+        $closed = !empty($exception['closed']) ? ' checked' : '';
+        // hide the "Hours" field while "closed all day" is checked
+        $timesStyle = empty($exception['closed']) ? '' : ' style="display:none"';
+        // "Hours" is only required while the exception isn't "closed all day" - matches the
+        // ".oh-exception-closed" change handler in openinghours.js, which toggles this same
+        // class alongside show()/hide() when the checkbox is (un)checked
+        $timesRequiredClass = empty($exception['closed']) ? ' InputfieldStateRequired' : '';
+        // unique id for this row's "Closed all day" checkbox (fe
+        // "<fieldname>-exception-closed-0") - not strictly needed by the class-based
+        // add/remove/sync logic in openinghours.js, but every other input on a ProcessWire
+        // admin form has one, so this keeps these checkboxes individually addressable (fe
+        // for client-side validation keyed off a specific checkbox). Deliberately an "id"
+        // only, not also a "name": ___processInput() below sweeps up every POST key that
+        // starts with the field's own name into $timeInputs and tries to parse it as a time
+        // string - a "name" built the same way (fe "<fieldname>-exception-closed-0") would
+        // get caught by that and rejected as an invalid time value when checked.
+        $closedId = htmlspecialchars($this->attr('name') . '-exception-closed-' . $this->exceptionRowIndex++, ENT_QUOTES);
+        // admin theme's own input/checkbox/label classes (fe "uk-input"/"uk-checkbox"/
+        // "uk-form-label"), kept in sync with every other field on the page-edit screen -
+        // see getExceptionInputClasses()
+        $classes = $this->getExceptionInputClasses();
+        $inputClass = trim($classes['input']);
+        $checkboxClass = trim($classes['checkbox']);
+        $labelClass = trim($classes['label'] ?? '');
+        // used for the field-caption labels ("Label", "Dates", "Hours") - not the compact
+        // "From"/"To" sub-labels, which keep their own dedicated inline styling
+        $labelAttr = $labelClass !== '' ? ' class="' . $labelClass . '"' : '';
+
+        $out = '<div class="oh-exception-row">';
+
+        // Label, From/To, Closed all day, Repeat every year, Hours - grouped in their own
+        // wrapper so a clear gap can be put between them and the "Remove Exception" button
+        // below, independent of the (smaller) gap between the fields themselves
+        $out .= '<div class="oh-exception-fields">';
+
+        // Label
+        $out .= '<div class="oh-exception-field oh-exception-field-label">';
+        $out .= '<label' . $labelAttr . '>' . $this->_('Label') . '</label>';
+        $out .= $this->renderExceptionLabelInputs($exception['label'] ?? '');
+        $out .= '</div>';
+
+        // Dates (From/To) - a "Dates" field label above the row, mirroring the "Hours"
+        // field further down; the From/To sub-labels reuse the same translatable strings
+        // as the regular weekday and exception-times fields. "oh-required" marks the
+        // caption with a red asterisk (see the ".oh-required" CSS rule) since From/To are
+        // mandatory - mirroring ProcessWire's own core convention for a required
+        // Inputfield, where the "InputfieldStateRequired" class similarly triggers a
+        // ":after { content: ' *' }" on the field's label (see AdminThemeDefault/
+        // AdminThemeReno's _inputfields.scss) rather than the asterisk being part of the
+        // label text itself.
+        $out .= '<div class="oh-exception-field oh-exception-field-daterange oh-required">';
+        $out .= '<label' . $labelAttr . '>' . $this->_('Dates') . '</label>';
+        $out .= '<div class="oh-exception-daterange-inputs">';
+        $out .= '<label class="openinghours-label from">' . $this->_('From') . ':</label>';
+        $out .= '<input type="date" class="' . trim('oh-exception-start-date ' . $inputClass) . '" value="' . $startDate . '"/>';
+        $out .= '<label class="openinghours-label to">' . $this->_('To') . ':</label>';
+        $out .= '<input type="date" class="' . trim('oh-exception-end-date ' . $inputClass) . '" value="' . $endDate . '"/>';
+        $out .= '</div>';
+        $out .= '</div>';
+
+        // Closed all day
+        $out .= '<div class="oh-exception-field oh-exception-field-closed">';
+        $out .= '<label><input type="checkbox" id="' . $closedId . '" class="' . trim('oh-exception-closed ' . $checkboxClass) . '"' . $closed . '/> ' . $this->_('Closed all day') . '</label>';
+        $out .= '</div>';
+
+        // Repeat every year
+        $out .= '<div class="oh-exception-field oh-exception-field-recurring">';
+        $out .= '<label><input type="checkbox" class="' . trim('oh-exception-recurring ' . $checkboxClass) . '"' . $recurring . '/> ' . $this->_('Repeat every year') . '</label>';
+        $out .= '</div>';
+
+        // Hours - "InputfieldStateRequired" is the same class ProcessWire core adds to a
+        // real required Inputfield's wrapper (see InputfieldWrapper::render()); the admin
+        // theme's own CSS already gives ".InputfieldStateRequired > .InputfieldHeader" (our
+        // "Hours" label carries that class too - see getExceptionInputClasses()) an asterisk
+        // via a ":after" pseudo-element, so no custom class/CSS was needed here (unlike
+        // "Dates" above, which uses our own "oh-required" - see the CSS for why: this
+        // reuses the real, more specific core class name as requested).
+        $out .= '<div class="oh-exception-field oh-exception-field-times oh-exception-times' . $timesRequiredClass . '"' . $timesStyle . '>';
+        $out .= '<label' . $labelAttr . '>' . $this->_('Hours') . '</label>';
+        $out .= $this->renderExceptionTimesInputs($exception['times'] ?? array_intersect_key($exception, ['start' => '', 'finish' => '']));
+        $out .= '</div>';
+
+        $out .= '</div>'; // close .oh-exception-fields
+
+        // Remove button
+        $out .= '<div class="oh-exception-field oh-exception-field-remove">';
+        $out .= '<button type="button" class="ui-button ui-priority-secondary oh-exception-remove-btn">' . $this->_('Remove Exception') . '</button>';
+        $out .= '</div>';
+
+        $out .= '</div>';
+        return $out;
+    }
+
+    /**
      * Allow these fields to get overwritten by user on per template base
      * @param Field $field
      * @return array
      *
      */
-    public function getConfigAllowContext(Field $field):array
+    public function getConfigAllowContext(Field $field): array
     {
         return [
             'numberOftimes',
@@ -441,6 +1236,4 @@ class InputfieldOpeningHours extends Inputfield
             'hideholiday'
         ];
     }
-
-
 }
